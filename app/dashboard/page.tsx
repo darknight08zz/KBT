@@ -65,7 +65,7 @@ export default function DashboardPage() {
                         <div className="relative z-10 pt-8">
                             {role === 'admin' ? (
                                 <button
-                                    onClick={() => alert('Admin features coming soon!')}
+                                    onClick={() => router.push('/admin')}
                                     className="btn-primary"
                                 >
                                     Manage Quiz ⚙️
@@ -82,30 +82,29 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Stats / Info Card */}
-                    <div className="grid grid-rows-2 gap-6">
-                        <div className="glass-panel p-6 rounded-2xl flex items-center gap-6">
-                            <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-3xl">
-                                🏆
-                            </div>
-                            <div>
-                                <div className="text-sm text-gray-500 uppercase tracking-widest font-bold">Current Ranking</div>
-                                <div className="text-2xl font-bold text-white">--</div>
-                            </div>
-                        </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <button
+                            onClick={() => router.push('/quiz')}
+                            className="bg-gradient-to-br from-primary to-primary-glow p-8 rounded-2xl flex flex-col items-center justify-center gap-4 hover:scale-[1.02] transition-transform group shadow-lg shadow-primary/20"
+                        >
+                            <span className="text-5xl group-hover:scale-110 transition-transform duration-300">⚔️</span>
+                            <span className="text-2xl font-bold font-sans">Enter Arena</span>
+                            <span className="text-white/70 text-sm">Start the Quiz Challenge</span>
+                        </button>
 
-                        <div className="glass-panel p-6 rounded-2xl flex items-center gap-6">
-                            <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-3xl">
-                                ⏱️
-                            </div>
-                            <div>
-                                <div className="text-sm text-gray-500 uppercase tracking-widest font-bold">Previous Time</div>
-                                <div className="text-2xl font-bold text-white">--</div>
-                            </div>
-                        </div>
+                        <button
+                            onClick={() => router.push('/result')} // Shortcut to leaderboard
+                            className="bg-secondary/50 border border-white/5 p-8 rounded-2xl flex flex-col items-center justify-center gap-4 hover:bg-white/5 transition-colors group"
+                        >
+                            <span className="text-5xl group-hover:scale-110 transition-transform duration-300">🏆</span>
+                            <span className="text-2xl font-bold font-sans">Leaderboard</span>
+                            <span className="text-gray-400 text-sm">View Global Rankings</span>
+                        </button>
+
+
                     </div>
 
                 </div>
-
             </div>
         </div>
     );

@@ -8,14 +8,22 @@ export const metadata = {
   description: 'The Ultimate Technical Quiz Platform',
 };
 
+import ConsoleLogger from './components/ConsoleLogger';
+
 export default function RootLayout({
   children,
-}: {
-  children: React.ReactNode
-}) {
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} font-sans antialiased bg-black text-white`} suppressHydrationWarning>{children}</body>
+      <body
+        className={`${inter.className} font-sans antialiased bg-black text-white`}
+        suppressHydrationWarning
+      >
+        <ConsoleLogger />
+        {children}
+      </body>
     </html>
   );
 }

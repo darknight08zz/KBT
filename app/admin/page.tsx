@@ -1,0 +1,233 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { User, Question } from '@/app/types';
+
+interface QuestionWithId extends Question {
+    id: number;
+}
+
+import Modal from '@/app/components/Modal';
+
+export default function AdminPage() {
+    const router = useRouter();
+    const [activeTab, setActiveTab] = useState<'users' | 'questions' | 'controls'>('users');
+    const [users, setUsers] = useState<User[]>([]);
+    const [questions, setQuestions] = useState<QuestionWithId[]>([]);
+    const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+
+    // New Question State
+    const [newQuestion, setNewQuestion] = useState({ text: '', options: ['', '', '', ''], answer: '', topic: '' });
+
+    useEffect(() => {
+        // Basic Role Check
+        const role = sessionStorage.getItem('kbt-role');
+        if (role !== 'admin') {
+            router.push('/dashboard');
+            return;
+        }
+        fetchData();
+    }, []);
+
+    const fetchData = async () => {
+        const usersRes = await fetch('/api/admin/users');
+        const qRes = await fetch('/api/admin/questions');
+        if (usersRes.ok) setUsers(await usersRes.json());
+        if (qRes.ok) setQuestions(await qRes.json());
+    };
+
+    const handleAddQuestion = async (e: React.FormEvent) => {
+        e.preventDefault();
+        await fetch('/api/admin/questions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newQuestion)
+        });
+        setNewQuestion({ text: '', options: ['', '', '', ''], answer: '', topic: '' });
+        fetchData();
+    };
+
+    const handleDeleteQuestion = async (id: number) => {
+        if (!confirm("Delete this question?")) return;
+        await fetch(`/api/admin/questions?id=${id}`, { method: 'DELETE' });
+        fetchData();
+    };
+
+    const confirmResetLeaderboard = async () => {
+        await fetch('/api/admin/reset', { method: 'POST' });
+        setIsResetModalOpen(false);
+        // Optional: show a toast or success modal
+    };
+
+    return (
+        <div className="min-h-screen bg-black text-white font-sans p-6">
+            <Modal
+                isOpen={isResetModalOpen}
+                title="Reset Leaderboard?"
+                message="This will delete ALL scores permanently. This action cannot be undone."
+                type="danger"
+                confirmText="Yes, Reset Everything"
+                onConfirm={confirmResetLeaderboard}
+                onCancel={() => setIsResetModalOpen(false)}
+            />
+
+            <div className="max-w-6xl mx-auto">
+                <header className="flex justify-between items-center mb-8 border-b border-white/10 pb-6">
+                    <div>
+                        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">Event Control Center</h1>
+                        <p className="text-gray-400">Manage Users, Questions & Live Event Status</p>
+                    </div>
+                    <button onClick={() => router.push('/dashboard')} className="px-4 py-2 bg-white/5 rounded-lg hover:bg-white/10 text-sm">
+                        Exit to Dashboard
+                    </button>
+                </header>
+
+                {/* Tabs */}
+                <div className="flex gap-4 mb-8">
+                    {['users', 'questions', 'controls'].map((tab) => (
+                        <button
+                            key={tab}
+                            onClick={() => setActiveTab(tab as any)}
+                            className={`px-6 py-3 rounded-xl font-bold capitalize transition-colors ${activeTab === tab ? 'bg-primary text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                                }`}
+                        >
+                            {tab}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Tab Content */}
+                <div className="glass-panel p-6 animate-fade-in-up">
+
+                    {/* USERS TAB */}
+                    {activeTab === 'users' && (
+                        <div>
+                            <h2 className="text-xl font-bold mb-4">Registered Users ({users.length})</h2>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left text-sm">
+                                    <thead className="bg-white/5 text-gray-400 uppercase text-xs">
+                                        <tr>
+                                            <th className="p-3">ID</th>
+                                            <th className="p-3">Username</th>
+                                            <th className="p-3">Email</th>
+                                            <th className="p-3">Role</th>
+                                            <th className="p-3">Joined</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-white/5">
+                                        {users.map(u => (
+                                            <tr key={u.id} className="hover:bg-white/5">
+                                                <td className="p-3 text-gray-500">#{u.id}</td>
+                                                <td className="p-3 font-bold">{u.username}</td>
+                                                <td className="p-3 text-blue-400">{u.email || '-'}</td>
+                                                <td className="p-3">
+                                                    <span className={`px-2 py-1 rounded text-xs ${u.role === 'admin' ? 'bg-purple-500/20 text-purple-300' : 'bg-green-500/20 text-green-300'}`}>
+                                                        {u.role}
+                                                    </span>
+                                                </td>
+                                                <td className="p-3 text-gray-500">{new Date(u.created_at || '').toLocaleDateString()}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* QUESTIONS TAB */}
+                    {activeTab === 'questions' && (
+                        <div className="space-y-8">
+
+                            {/* Add Form */}
+                            <div className="bg-white/5 p-6 rounded-xl border border-white/5">
+                                <h3 className="font-bold text-lg mb-4 text-accent">Add New Question</h3>
+                                <form onSubmit={handleAddQuestion} className="space-y-4">
+                                    <input
+                                        placeholder="Question Text"
+                                        className="w-full bg-black/50 border border-white/10 p-3 rounded-lg"
+                                        value={newQuestion.text}
+                                        onChange={e => setNewQuestion({ ...newQuestion, text: e.target.value })}
+                                        required
+                                    />
+                                    <div className="grid grid-cols-2 gap-4">
+                                        {newQuestion.options.map((opt, i) => (
+                                            <input
+                                                key={i}
+                                                placeholder={`Option ${i + 1}`}
+                                                className="bg-black/50 border border-white/10 p-3 rounded-lg"
+                                                value={opt}
+                                                onChange={e => {
+                                                    const newOpts = [...newQuestion.options];
+                                                    newOpts[i] = e.target.value;
+                                                    setNewQuestion({ ...newQuestion, options: newOpts });
+                                                }}
+                                                required
+                                            />
+                                        ))}
+                                    </div>
+                                    <div className="flex gap-4">
+                                        <input
+                                            placeholder="Correct Answer (Must match exactly)"
+                                            className="flex-1 bg-black/50 border border-white/10 p-3 rounded-lg"
+                                            value={newQuestion.answer}
+                                            onChange={e => setNewQuestion({ ...newQuestion, answer: e.target.value })}
+                                            required
+                                        />
+                                        <input
+                                            placeholder="Topic (e.g. React)"
+                                            className="w-40 bg-black/50 border border-white/10 p-3 rounded-lg"
+                                            value={newQuestion.topic}
+                                            onChange={e => setNewQuestion({ ...newQuestion, topic: e.target.value })}
+                                        />
+                                    </div>
+                                    <button className="w-full btn-primary">Add Question</button>
+                                </form>
+                            </div>
+
+                            {/* List */}
+                            <div>
+                                <h3 className="font-bold text-lg mb-4">Question Bank ({questions.length})</h3>
+                                <div className="space-y-4">
+                                    {questions.map((q) => (
+                                        <div key={q.id} className="p-4 rounded-xl bg-white/5 border border-white/5 flex justify-between items-start">
+                                            <div>
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <span className="text-xs font-bold px-2 py-1 bg-white/10 rounded">{q.topic || 'General'}</span>
+                                                    <h4 className="font-bold">{q.text}</h4>
+                                                </div>
+                                                <div className="flex gap-2 text-sm text-gray-400">
+                                                    {q.options.map(opt => (
+                                                        <span key={opt} className={opt === q.answer ? 'text-green-400 font-bold' : ''}>{opt}</span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <button onClick={() => handleDeleteQuestion(q.id)} className="text-red-400 hover:bg-red-500/10 p-2 rounded">
+                                                🗑
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                        </div>
+                    )}
+
+                    {/* CONTROLS TAB */}
+                    {activeTab === 'controls' && (
+                        <div className="space-y-8">
+                            <div className="p-6 rounded-xl border border-red-500/30 bg-red-500/5">
+                                <h3 className="text-red-400 font-bold text-lg mb-2">Danger Zone</h3>
+                                <p className="text-gray-400 mb-6">Resetting the leaderboard will remove ALL records for every participant. This action cannot be undone.</p>
+                                <button onClick={() => setIsResetModalOpen(true)} className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors">
+                                    Reset Leaderboard
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                </div>
+            </div>
+        </div>
+    );
+}

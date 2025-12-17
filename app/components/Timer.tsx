@@ -3,46 +3,28 @@
 import { useEffect, useState } from 'react';
 
 interface TimerProps {
-    durationSeconds?: number;
+    timeLeft: number;
+    setTimeLeft: (time: number) => void;
     onTimeUp: () => void;
-    onTimeUpdate: (timeLeft: number) => void;
 }
 
-export default function Timer({ durationSeconds = 1200, onTimeUp, onTimeUpdate }: TimerProps) {
-    // 1200 seconds = 20 minutes
-    const [timeLeft, setTimeLeft] = useState<number>(durationSeconds);
+export default function Timer({ timeLeft, setTimeLeft, onTimeUp }: TimerProps) {
     const [isActive, setIsActive] = useState<boolean>(true);
-
-    useEffect(() => {
-        // Attempt to restore from sessionStorage to persist across refresh if needed
-        const savedTime = sessionStorage.getItem('kbt-timer');
-        if (savedTime) {
-            const parsed = parseInt(savedTime, 10);
-            if (!isNaN(parsed) && parsed > 0) {
-                setTimeLeft(parsed);
-            }
-        }
-    }, []);
 
     useEffect(() => {
         let interval: NodeJS.Timeout | null = null;
         if (isActive && timeLeft > 0) {
             interval = setInterval(() => {
-                setTimeLeft((prev) => {
-                    const newVal = prev - 1;
-                    sessionStorage.setItem('kbt-timer', newVal.toString());
-                    if (onTimeUpdate) onTimeUpdate(newVal);
-                    return newVal;
-                });
+                setTimeLeft(Math.max(0, timeLeft - 1));
             }, 1000);
         } else if (timeLeft === 0) {
             setIsActive(false);
-            if (onTimeUp) onTimeUp();
+            onTimeUp();
         }
         return () => {
             if (interval) clearInterval(interval);
         };
-    }, [isActive, timeLeft, onTimeUp, onTimeUpdate]);
+    }, [isActive, timeLeft, onTimeUp, setTimeLeft]);
 
     const formatTime = (seconds: number) => {
         const h = Math.floor(seconds / 3600);

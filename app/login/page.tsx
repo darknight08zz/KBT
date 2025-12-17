@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, FormEvent } from 'react';
@@ -73,6 +72,14 @@ export default function LoginPage() {
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-black relative overflow-hidden">
+
+            <button
+                onClick={() => router.push('/')}
+                className="absolute top-8 left-8 flex items-center gap-2 text-gray-400 hover:text-white transition-colors z-50 font-bold text-sm uppercase tracking-widest"
+            >
+                ← Back to Home
+            </button>
+
             {/* Background Ambience */}
             <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20"></div>
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px]"></div>
@@ -186,12 +193,6 @@ export default function LoginPage() {
                         {loading ? 'Processing...' : (isLogin ? 'Access Dashboard' : 'Create Account')}
                     </button>
                 </form>
-
-                <div className="mt-8 text-center">
-                    <button onClick={() => router.push('/')} className="text-xs text-gray-500 hover:text-white transition-colors">
-                        ← Back to Home
-                    </button>
-                </div>
 
             </div>
         </div>
