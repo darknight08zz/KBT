@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #0a0a0a;
+  --color-foreground: #ededed;
+  --color-primary: #6d28d9;
+  --color-primary-glow: #8b5cf6;
+  --color-secondary: #27272a;
+  --color-accent: #d8b4fe;
+  --color-glass: rgba(255, 255, 255, 0.05);
+
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+}
+
+/* Custom Utilities using standard CSS and explicit @apply if needed, 
+   but v4 encourages CSS variables for theme.
+   Re-defining standard styles. 
+*/
+
+:root {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .glass-panel {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl;
+  }
+
+  .btn-primary {
+    @apply bg-gradient-to-br from-primary to-primary-glow text-white font-bold py-3 px-6 rounded-full transition-transform hover:-translate-y-0.5 shadow-lg shadow-primary/20;
+  }
+}
