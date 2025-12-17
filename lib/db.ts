@@ -6,7 +6,7 @@ declare global {
 }
 
 const pool = global.postgresPool || new Pool({
-  connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_Rhgv8yuVqlX1@ep-twilight-silence-a400lc5v-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require',
+  connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL || 'postgresql://postgres:ujjwal0802@localhost:5432/kbt',
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
 });
 
