@@ -4,22 +4,34 @@ import { useEffect, ReactNode } from 'react';
 
 interface AntiCheatProviderProps {
     children: ReactNode;
+    onCheat?: () => void;
 }
 
-export default function AntiCheatProvider({ children }: AntiCheatProviderProps) {
+export default function AntiCheatProvider({ children, onCheat }: AntiCheatProviderProps) {
     useEffect(() => {
-        // ... (existing logic) relies on window events which are typed in default DOM lib
+        let warningCount = 0;
+        const MAX_WARNINGS = 0; // Immediate disqualification as per request
 
-        const handleContextMenu = (e: MouseEvent) => e.preventDefault();
+        const triggerCheat = (reason: string) => {
+            // alert(`CHEAT DETECTED: ${reason}. You are being disqualified.`);
+            if (onCheat) {
+                onCheat();
+            }
+        };
+
+        const handleContextMenu = (e: MouseEvent) => {
+            e.preventDefault();
+            // triggerCheat("Right Click"); // Optional: maybe just block it without DQ? User said "any method cheat detected... thrown to leaderboard"
+        };
 
         const handleCopyDetect = (e: ClipboardEvent) => {
             e.preventDefault();
-            alert("Copy/Paste is disabled!");
+            triggerCheat("Copy/Paste Attempt");
         };
 
         const handleVisibilityChange = () => {
             if (document.hidden) {
-                alert("WARNING: Tab switching is monitored. Pls stay on this tab.");
+                triggerCheat("Tab Switching");
             }
         };
 
@@ -35,6 +47,7 @@ export default function AntiCheatProvider({ children }: AntiCheatProviderProps) 
                 (e.ctrlKey && e.key === 'c')
             ) {
                 e.preventDefault();
+                triggerCheat("Restricted Key Combination");
             }
         };
 
@@ -55,7 +68,7 @@ export default function AntiCheatProvider({ children }: AntiCheatProviderProps) 
             window.removeEventListener('beforeunload', handleBeforeUnload);
             document.removeEventListener('keydown', handleKeyDown);
         };
-    }, []);
+    }, [onCheat]);
 
     return <>{children}</>;
 }

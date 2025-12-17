@@ -8,6 +8,8 @@ export default function DashboardPage() {
     const [username, setUsername] = useState<string>('');
     const [role, setRole] = useState<string>('player');
 
+    const [hasAttempted, setHasAttempted] = useState<boolean>(false);
+
     useEffect(() => {
         // Check session
         const storedUser = sessionStorage.getItem('kbt-username');
@@ -18,6 +20,18 @@ export default function DashboardPage() {
         } else {
             setUsername(storedUser);
             setRole(storedRole || 'player');
+
+            // Check if user has already attempted
+            if (storedRole !== 'admin') {
+                fetch(`/api/user/status?username=${encodeURIComponent(storedUser)}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.hasAttempted) {
+                            setHasAttempted(true);
+                        }
+                    })
+                    .catch(err => console.error("Failed to check status", err));
+            }
         }
     }, [router]);
 
@@ -48,17 +62,45 @@ export default function DashboardPage() {
 
                 {/* Content */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Rules Card */}
+                    <div className="glass-panel p-6 rounded-2xl flex flex-col md:col-span-2 bg-gradient-to-r from-blue-900/20 to-purple-900/20">
+                        <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                            <span>📜</span> Arena Rules & Scoring
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+                            <div className="p-3 bg-green-500/10 rounded-lg border border-green-500/20">
+                                <div className="font-bold text-green-400">Correct Answer</div>
+                                <div className="text-2xl font-mono">+5 pts</div>
+                            </div>
+                            <div className="p-3 bg-red-500/10 rounded-lg border border-red-500/20">
+                                <div className="font-bold text-red-400">Easy Mistake</div>
+                                <div className="text-2xl font-mono">-0 pts</div>
+                            </div>
+                            <div className="p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
+                                <div className="font-bold text-yellow-400">Medium Mistake</div>
+                                <div className="text-2xl font-mono">-0.5 pts</div>
+                            </div>
+                            <div className="p-3 bg-red-900/20 rounded-lg border border-red-500/40">
+                                <div className="font-bold text-red-300">Hard Mistake</div>
+                                <div className="text-2xl font-mono">-1.0 pts</div>
+                            </div>
+                        </div>
+                    </div>
 
                     {/* Main Action Card */}
                     <div className="glass-panel p-8 rounded-2xl flex flex-col justify-between min-h-[300px] border-primary/20 relative overflow-hidden group">
                         <div className="absolute inset-0 bg-primary/5 group-hover:bg-primary/10 transition-colors"></div>
 
                         <div className="relative z-10">
-                            <h2 className="text-4xl font-bold mb-4">{role === 'admin' ? 'Event Control' : 'Ready to Compete?'}</h2>
+                            <h2 className="text-4xl font-bold mb-4">
+                                {role === 'admin' ? 'Event Control' : hasAttempted ? 'Quiz Completed' : 'Ready to Compete?'}
+                            </h2>
                             <p className="text-gray-400 max-w-sm">
                                 {role === 'admin'
                                     ? 'Manage the quiz parameters, view live stats, and monitor active users.'
-                                    : 'The arena awaits. Precision and speed are your only allies here.'}
+                                    : hasAttempted
+                                        ? 'You have already submitted your score. Check the leaderboard to see your rank.'
+                                        : 'The arena awaits. Precision and speed are your only allies here.'}
                             </p>
                         </div>
 
@@ -69,6 +111,13 @@ export default function DashboardPage() {
                                     className="btn-primary"
                                 >
                                     Manage Quiz ⚙️
+                                </button>
+                            ) : hasAttempted ? (
+                                <button
+                                    onClick={() => router.push('/result')}
+                                    className="px-8 py-3 rounded-xl font-bold bg-white/10 hover:bg-white/20 text-white border border-white/10 transition-all"
+                                >
+                                    View Results 📊
                                 </button>
                             ) : (
                                 <button

@@ -18,7 +18,7 @@ export default function AdminPage() {
     const [isResetModalOpen, setIsResetModalOpen] = useState(false);
 
     // New Question State
-    const [newQuestion, setNewQuestion] = useState({ text: '', options: ['', '', '', ''], answer: '', topic: '' });
+    const [newQuestion, setNewQuestion] = useState({ text: '', options: ['', '', '', ''], answer: '', topic: '', difficulty: 'medium' });
 
     useEffect(() => {
         // Basic Role Check
@@ -44,7 +44,7 @@ export default function AdminPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(newQuestion)
         });
-        setNewQuestion({ text: '', options: ['', '', '', ''], answer: '', topic: '' });
+        setNewQuestion({ text: '', options: ['', '', '', ''], answer: '', topic: '', difficulty: 'medium' });
         fetchData();
     };
 
@@ -180,6 +180,15 @@ export default function AdminPage() {
                                             value={newQuestion.topic}
                                             onChange={e => setNewQuestion({ ...newQuestion, topic: e.target.value })}
                                         />
+                                        <select
+                                            className="w-40 bg-black/50 border border-white/10 p-3 rounded-lg capitalize"
+                                            value={newQuestion.difficulty}
+                                            onChange={e => setNewQuestion({ ...newQuestion, difficulty: e.target.value })}
+                                        >
+                                            <option value="easy">Easy</option>
+                                            <option value="medium">Medium</option>
+                                            <option value="hard">Hard</option>
+                                        </select>
                                     </div>
                                     <button className="w-full btn-primary">Add Question</button>
                                 </form>
@@ -194,6 +203,12 @@ export default function AdminPage() {
                                             <div>
                                                 <div className="flex items-center gap-3 mb-2">
                                                     <span className="text-xs font-bold px-2 py-1 bg-white/10 rounded">{q.topic || 'General'}</span>
+                                                    <span className={`text-xs font-bold px-2 py-1 rounded uppercase ${q.difficulty === 'hard' ? 'bg-red-500/20 text-red-300' :
+                                                        q.difficulty === 'easy' ? 'bg-green-500/20 text-green-300' :
+                                                            'bg-yellow-500/20 text-yellow-300'
+                                                        }`}>
+                                                        {q.difficulty || 'medium'}
+                                                    </span>
                                                     <h4 className="font-bold">{q.text}</h4>
                                                 </div>
                                                 <div className="flex gap-2 text-sm text-gray-400">

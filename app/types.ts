@@ -11,6 +11,7 @@ export interface Question {
     options: string[];
     answer: string;
     topic?: string;
+    difficulty?: 'easy' | 'medium' | 'hard';
 }
 
 export interface LeaderboardEntry {

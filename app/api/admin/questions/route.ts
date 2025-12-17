@@ -15,12 +15,12 @@ export async function GET() {
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { text, options, answer, topic } = body;
+        const { text, options, answer, topic, difficulty } = body;
 
         const client = await pool.connect();
         await client.query(
-            'INSERT INTO questions (text, options, answer, topic) VALUES ($1, $2, $3, $4)',
-            [text, options, answer, topic]
+            'INSERT INTO questions (text, options, answer, topic, difficulty) VALUES ($1, $2, $3, $4, $5)',
+            [text, options, answer, topic, difficulty || 'medium']
         );
         client.release();
 
