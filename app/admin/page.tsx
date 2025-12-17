@@ -18,7 +18,14 @@ export default function AdminPage() {
     const [isResetModalOpen, setIsResetModalOpen] = useState(false);
 
     // New Question State
-    const [newQuestion, setNewQuestion] = useState({ text: '', options: ['', '', '', ''], answer: '', topic: '', difficulty: 'medium' });
+    const [newQuestion, setNewQuestion] = useState({
+        text: '',
+        options: ['', '', '', ''],
+        answer: '',
+        topic: '',
+        difficulty: 'medium',
+        type: 'mcq'
+    });
 
     useEffect(() => {
         // Basic Role Check
@@ -44,7 +51,14 @@ export default function AdminPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(newQuestion)
         });
-        setNewQuestion({ text: '', options: ['', '', '', ''], answer: '', topic: '', difficulty: 'medium' });
+        setNewQuestion({
+            text: '',
+            options: ['', '', '', ''],
+            answer: '',
+            topic: '',
+            difficulty: 'medium',
+            type: 'mcq'
+        });
         fetchData();
     };
 
@@ -151,7 +165,7 @@ export default function AdminPage() {
                                         required
                                     />
                                     <div className="grid grid-cols-2 gap-4">
-                                        {newQuestion.options.map((opt, i) => (
+                                        {(newQuestion.type === 'mcq' || newQuestion.type === 'multiselect') && newQuestion.options.map((opt, i) => (
                                             <input
                                                 key={i}
                                                 placeholder={`Option ${i + 1}`}
@@ -189,6 +203,16 @@ export default function AdminPage() {
                                             <option value="medium">Medium</option>
                                             <option value="hard">Hard</option>
                                         </select>
+                                        <select
+                                            className="w-40 bg-black/50 border border-white/10 p-3 rounded-lg capitalize"
+                                            value={newQuestion.type}
+                                            onChange={e => setNewQuestion({ ...newQuestion, type: e.target.value })}
+                                        >
+                                            <option value="mcq">MCQ (Single)</option>
+                                            <option value="multiselect">Multi-Select</option>
+                                            <option value="short_answer">Short Answer</option>
+                                            <option value="long_answer">Long Answer</option>
+                                        </select>
                                     </div>
                                     <button className="w-full btn-primary">Add Question</button>
                                 </form>
@@ -203,6 +227,7 @@ export default function AdminPage() {
                                             <div>
                                                 <div className="flex items-center gap-3 mb-2">
                                                     <span className="text-xs font-bold px-2 py-1 bg-white/10 rounded">{q.topic || 'General'}</span>
+                                                    <span className="text-xs font-bold px-2 py-1 bg-blue-500/20 text-blue-300 rounded uppercase">{q.type || 'MCQ'}</span>
                                                     <span className={`text-xs font-bold px-2 py-1 rounded uppercase ${q.difficulty === 'hard' ? 'bg-red-500/20 text-red-300' :
                                                         q.difficulty === 'easy' ? 'bg-green-500/20 text-green-300' :
                                                             'bg-yellow-500/20 text-yellow-300'

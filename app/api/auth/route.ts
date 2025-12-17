@@ -6,6 +6,7 @@ interface AuthRequestBody {
     action: 'register' | 'login';
     username: string;
     email?: string;
+    university?: string;
     password?: string;
     role?: 'admin' | 'player';
     secretKey?: string;
@@ -14,9 +15,9 @@ interface AuthRequestBody {
 export async function POST(request: NextRequest) {
     try {
         const body: AuthRequestBody = await request.json();
-        const { action, username, email, password, role, secretKey } = body;
+        const { action, username, email, university, password, role, secretKey } = body;
 
-        console.log(`Auth Request: Action=${action}, User=${username}, Email=${email}, Role=${role}`);
+        console.log(`Auth Request: Action=${action}, User=${username}, Email=${email}, Uni=${university}, Role=${role}`);
 
         if (!username || !password) {
             return NextResponse.json({ error: 'Missing credentials' }, { status: 400 });
@@ -47,8 +48,8 @@ export async function POST(request: NextRequest) {
 
                 // Insert new user
                 await client.query(
-                    'INSERT INTO users (username, password, role, email) VALUES ($1, $2, $3, $4)',
-                    [username, hashedPassword, userRole, email || null]
+                    'INSERT INTO users (username, password, role, email, university) VALUES ($1, $2, $3, $4, $5)',
+                    [username, hashedPassword, userRole, email || null, university || null]
                 );
 
                 return NextResponse.json({ success: true, message: 'User registered successfully!' });

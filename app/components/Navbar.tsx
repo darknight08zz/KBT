@@ -9,7 +9,7 @@ export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
 
     return (
-        <nav className="fixed z-50 top-4 left-4 right-4 rounded-2xl border border-white/10 bg-black md:top-0 md:left-0 md:w-full md:rounded-none md:border-b md:border-t-0 md:border-x-0 md:bg-black/50 md:backdrop-blur-xl">
+        <nav className="fixed z-50 top-4 left-4 right-4 rounded-2xl border border-white/10 bg-[#0f0c29] md:top-0 md:left-0 md:w-full md:rounded-none md:border-b md:border-t-0 md:border-x-0 md:bg-[#0f0c29]/50 md:backdrop-blur-xl">
             <div className="max-w-7xl mx-auto px-6 h-14 md:h-20 flex justify-between items-center">
 
                 {/* Logo */}
@@ -64,7 +64,7 @@ export default function Navbar() {
 
             {/* Mobile Menu Overlay */}
             {isOpen && (
-                <div className="md:hidden absolute top-20 left-0 w-full bg-black/95 backdrop-blur-xl border-b border-white/10 p-6 flex flex-col gap-6 shadow-2xl animate-in slide-in-from-top-5">
+                <div className="md:hidden absolute top-20 left-0 w-full bg-[#0f0c29]/95 backdrop-blur-xl border-b border-white/10 p-6 flex flex-col gap-6 shadow-2xl animate-in slide-in-from-top-5">
                     <div className="flex flex-col gap-4">
                         <Link
                             href="/leaderboard"

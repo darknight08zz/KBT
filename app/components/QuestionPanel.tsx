@@ -6,12 +6,24 @@ interface QuestionPanelProps {
     question: Question;
     currentQuestionIndex: number;
     totalQuestions: number;
-    selectedAnswer: string | null;
-    onAnswer: (option: string) => void;
+    selectedAnswer: string | string[] | null;
+    onAnswer: (option: string | string[]) => void;
 }
 
 export default function QuestionPanel({ question, currentQuestionIndex, totalQuestions, selectedAnswer, onAnswer }: QuestionPanelProps) {
     if (!question) return null;
+
+    const handleMultiSelect = (option: string) => {
+        const current = Array.isArray(selectedAnswer) ? selectedAnswer : [];
+        const exists = current.includes(option);
+        let newSelection;
+        if (exists) {
+            newSelection = current.filter(item => item !== option);
+        } else {
+            newSelection = [...current, option];
+        }
+        onAnswer(newSelection);
+    };
 
     return (
         <div className="glass-panel p-8 w-full max-w-3xl mx-auto flex flex-col gap-6 animate-pulse">
@@ -25,13 +37,13 @@ export default function QuestionPanel({ question, currentQuestionIndex, totalQue
             </h2>
 
             <div className="space-y-3 mb-8">
-                {question.options.map((option, idx) => (
+                {(!question.type || question.type === 'mcq') && question.options.map((option, idx) => (
                     <button
                         key={idx}
                         onClick={() => onAnswer(option)}
                         className={`w-full text-left p-4 rounded-xl border transition-all ${selectedAnswer === option
-                                ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20'
-                                : 'bg-white/5 border-white/10 hover:bg-white/10 text-gray-300'
+                            ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20'
+                            : 'bg-white/5 border-white/10 hover:bg-white/10 text-gray-300'
                             }`}
                     >
                         <div className="flex items-center gap-3">
@@ -43,6 +55,47 @@ export default function QuestionPanel({ question, currentQuestionIndex, totalQue
                         </div>
                     </button>
                 ))}
+
+                {question.type === 'multiselect' && question.options.map((option, idx) => {
+                    const isSelected = Array.isArray(selectedAnswer) && selectedAnswer.includes(option);
+                    return (
+                        <button
+                            key={idx}
+                            onClick={() => handleMultiSelect(option)}
+                            className={`w-full text-left p-4 rounded-xl border transition-all ${isSelected
+                                ? 'bg-secondary border-primary text-white'
+                                : 'bg-white/5 border-white/10 hover:bg-white/10 text-gray-300'
+                                }`}
+                        >
+                            <div className="flex items-center gap-3">
+                                <div className={`w-6 h-6 rounded border flex items-center justify-center text-xs ${isSelected ? 'bg-primary border-primary text-white' : 'border-gray-500'
+                                    }`}>
+                                    {isSelected && '✓'}
+                                </div>
+                                {option}
+                            </div>
+                        </button>
+                    );
+                })}
+
+                {question.type === 'short_answer' && (
+                    <input
+                        type="text"
+                        className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                        placeholder="Type your answer here..."
+                        value={typeof selectedAnswer === 'string' ? selectedAnswer : ''}
+                        onChange={(e) => onAnswer(e.target.value)}
+                    />
+                )}
+
+                {question.type === 'long_answer' && (
+                    <textarea
+                        className="w-full h-32 bg-white/5 border border-white/10 p-4 rounded-xl text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+                        placeholder="Type your detailed answer here..."
+                        value={typeof selectedAnswer === 'string' ? selectedAnswer : ''}
+                        onChange={(e) => onAnswer(e.target.value)}
+                    />
+                )}
             </div>
         </div>
     );

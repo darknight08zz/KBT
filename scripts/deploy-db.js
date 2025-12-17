@@ -1,7 +1,7 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
-const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL || 'postgresql://postgres:ujjwal0802@localhost:5432/kbt';
 
 if (!connectionString) {
     console.error('❌ Error: POSTGRES_URL or DATABASE_URL environment variable is not defined.');
@@ -45,6 +45,18 @@ async function migrate() {
             }
         }
 
+        // Add university column if it doesn't exist
+        try {
+            await client.query(`ALTER TABLE users ADD COLUMN university VARCHAR(255);`);
+            console.log('   ✅ Added "university" column to users table.');
+        } catch (e) {
+            if (e.code === '42701') {
+                console.log('   ℹ️  "university" column already exists.');
+            } else {
+                throw e;
+            }
+        }
+
         // 2. Create Leaderboard Table
         console.log('🏆 Checking Leaderboard table...');
         await client.query(`
@@ -65,9 +77,22 @@ async function migrate() {
         text TEXT NOT NULL,
         options TEXT[] NOT NULL,
         answer TEXT NOT NULL,
-        topic VARCHAR(100)
+        topic VARCHAR(100),
+        type VARCHAR(50) DEFAULT 'mcq'
       );
     `);
+
+        // Add type column if it doesn't exist
+        try {
+            await client.query(`ALTER TABLE questions ADD COLUMN type VARCHAR(50) DEFAULT 'mcq';`);
+            console.log('   ✅ Added "type" column to questions table.');
+        } catch (e) {
+            if (e.code === '42701') {
+                console.log('   ℹ️  "type" column already exists.');
+            } else {
+                throw e;
+            }
+        }
 
         // 4. Seed Questions if empty
         const { rows: questionCount } = await client.query('SELECT COUNT(*) FROM questions');

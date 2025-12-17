@@ -2,6 +2,7 @@ export interface User {
     id: number;
     username: string;
     email?: string;
+    university?: string;
     role: 'admin' | 'player';
     created_at?: string;
 }
@@ -12,6 +13,7 @@ export interface Question {
     answer: string;
     topic?: string;
     difficulty?: 'easy' | 'medium' | 'hard';
+    type?: 'mcq' | 'multiselect' | 'short_answer' | 'long_answer';
 }
 
 export interface LeaderboardEntry {

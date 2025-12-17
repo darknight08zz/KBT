@@ -17,6 +17,7 @@ export default function LoginPage() {
     const [role, setRole] = useState<'admin' | 'player'>('player');
     const [username, setUsername] = useState<string>('');
     const [email, setEmail] = useState<string>('');
+    const [university, setUniversity] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [secretKey, setSecretKey] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
@@ -37,6 +38,7 @@ export default function LoginPage() {
                     action: isLogin ? 'login' : 'register',
                     username,
                     email: isLogin ? undefined : email,
+                    university: isLogin ? undefined : university,
                     password,
                     role: isLogin ? undefined : role,
                     secretKey: (!isLogin && role === 'admin') ? secretKey : undefined
@@ -60,7 +62,9 @@ export default function LoginPage() {
                 setIsLogin(true); // Switch to login
                 setPassword('');
                 setSecretKey('');
+                setSecretKey('');
                 setEmail('');
+                setUniversity('');
             }
 
         } catch (err: any) {
@@ -170,6 +174,20 @@ export default function LoginPage() {
                                 required
                             />
                             <p className="text-[10px] text-gray-500 ml-1">Please provide your official university email ID.</p>
+                        </div>
+                    )}
+
+                    {!isLogin && (
+                        <div className="space-y-1 animate-fade-in-up">
+                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">University / College Name</label>
+                            <input
+                                type="text"
+                                value={university}
+                                onChange={(e) => setUniversity(e.target.value)}
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                                placeholder="e.g. MIT, IIT Bombay"
+                                required
+                            />
                         </div>
                     )}
 
