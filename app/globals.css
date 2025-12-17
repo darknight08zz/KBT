@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+
 @theme {
   --color-background: #0a0a0a;
   --color-foreground: #ededed;
@@ -22,9 +23,34 @@
   --foreground: #ededed;
 }
 
+html,
+body {
+  overflow-x: hidden;
+}
+
 body {
   background-color: var(--background);
   color: var(--foreground);
+  /* Mobile Default: Darker overlay, smaller image (not zoomed) */
+  background-image: linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.85)), url('/background.jpeg');
+  background-size: 100% auto;
+  /* "Size small" - fits width */
+  background-position: top center;
+  background-attachment: scroll;
+  background-repeat: repeat-y;
+  overflow-x: hidden;
+  /* Prevent horizontal scroll from background effects */
+}
+
+@media (min-width: 768px) {
+  body {
+    /* Desktop: Lighter overlay, cover image */
+    background-image: linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.75)), url('/background.jpeg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+  }
 }
 
 @layer utilities {

@@ -12,7 +12,7 @@ export async function GET() {
         const client = await pool.connect();
         try {
             const result = await client.query(
-                'SELECT username, time_taken, score, created_at FROM leaderboard ORDER BY time_taken ASC, score DESC LIMIT 50'
+                'SELECT username, time_taken, score, created_at FROM leaderboard ORDER BY score DESC, time_taken ASC LIMIT 50'
             );
             return NextResponse.json(result.rows);
         } finally {
