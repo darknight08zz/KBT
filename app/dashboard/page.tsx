@@ -7,6 +7,7 @@ export default function DashboardPage() {
     const router = useRouter();
     const [username, setUsername] = useState<string>('');
     const [role, setRole] = useState<string>('player');
+    const [isYearModalOpen, setIsYearModalOpen] = useState(false);
 
     const [hasAttempted, setHasAttempted] = useState<boolean>(false);
 
@@ -40,10 +41,41 @@ export default function DashboardPage() {
         router.push('/');
     };
 
+    const handleStartQuiz = (year: string) => {
+        router.push(`/quiz?year=${year}`);
+    };
+
     return (
         <div className="min-h-screen bg-black/95 text-white p-6 relative overflow-hidden">
             {/* Background Ambience */}
             <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[150px] -z-10 animate-pulse"></div>
+
+            {/* Year Selection Modal */}
+            {isYearModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-gray-900 border border-white/10 p-8 rounded-2xl max-w-md w-full shadow-2xl transform scale-100 transition-all">
+                        <h2 className="text-2xl font-bold mb-6 text-center">Select Your Year</h2>
+                        <div className="grid grid-cols-1 gap-4">
+                            {['1st', '2nd', '3rd'].map((year) => (
+                                <button
+                                    key={year}
+                                    onClick={() => handleStartQuiz(year)}
+                                    className="p-4 rounded-xl bg-white/5 hover:bg-primary hover:text-white border border-white/10 transition-all font-bold text-lg flex justify-between items-center group"
+                                >
+                                    <span>{year} Year</span>
+                                    <span className="opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+                                </button>
+                            ))}
+                        </div>
+                        <button
+                            onClick={() => setIsYearModalOpen(false)}
+                            className="mt-6 w-full py-3 text-gray-500 hover:text-white transition-colors text-sm font-bold"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            )}
 
             <div className="max-w-6xl mx-auto">
 
@@ -121,7 +153,7 @@ export default function DashboardPage() {
                                 </button>
                             ) : (
                                 <button
-                                    onClick={() => router.push('/quiz')}
+                                    onClick={() => setIsYearModalOpen(true)}
                                     className="btn-primary text-xl px-8 shadow-lg shadow-primary/20"
                                 >
                                     Start Quiz 🚀
@@ -133,7 +165,7 @@ export default function DashboardPage() {
                     {/* Stats / Info Card */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <button
-                            onClick={() => router.push('/quiz')}
+                            onClick={() => setIsYearModalOpen(true)}
                             className="bg-gradient-to-br from-primary to-primary-glow p-8 rounded-2xl flex flex-col items-center justify-center gap-4 hover:scale-[1.02] transition-transform group shadow-lg shadow-primary/20"
                         >
                             <span className="text-5xl group-hover:scale-110 transition-transform duration-300">⚔️</span>

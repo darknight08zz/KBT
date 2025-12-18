@@ -17,6 +17,7 @@ export interface Question {
     type?: 'mcq' | 'multiselect' | 'short_answer' | 'long_answer';
     image_url?: string;
     keywords?: string[]; // For smart matching
+    year_category?: string; // '1st', '2nd', '3rd'
 }
 
 export interface LeaderboardEntry {

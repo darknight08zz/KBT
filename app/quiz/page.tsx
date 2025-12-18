@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Question } from '@/app/types';
 import QuestionPanel from '@/app/components/QuestionPanel';
 import Timer from '@/app/components/Timer';
@@ -11,6 +11,9 @@ import AntiCheatProvider from '@/app/components/AntiCheatProvider';
 
 export default function QuizPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const year = searchParams.get('year');
+
     const [questions, setQuestions] = useState<Question[]>([]);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [selectedAnswers, setSelectedAnswers] = useState<(string | string[] | null)[]>([]);
@@ -31,7 +34,17 @@ export default function QuizPage() {
         // Fetch Questions
         const fetchQuestions = async () => {
             try {
-                // Check status first
+                // 1. Check Event Status
+                const eventRes = await fetch('/api/admin/event');
+                const eventData = await eventRes.json();
+
+                if (!eventData.is_active || (eventData.end_time && new Date(eventData.end_time).getTime() < Date.now())) {
+                    alert("The event is not currently active.");
+                    router.push('/dashboard');
+                    return;
+                }
+
+                // 2. Check User Status
                 const statusRes = await fetch(`/api/user/status?username=${encodeURIComponent(storedUser)}`);
                 const statusData = await statusRes.json();
 
@@ -41,9 +54,21 @@ export default function QuizPage() {
                     return;
                 }
 
-                const res = await fetch('/api/admin/questions');
+                // 3. Fetch Questions for Year
+                if (!year) {
+                    alert("No year selected. Please start from the dashboard.");
+                    router.push('/dashboard');
+                    return;
+                }
+
+                const res = await fetch(`/api/admin/questions?year=${year}`);
                 if (res.ok) {
                     const data = await res.json();
+                    if (data.length === 0) {
+                        alert(`No questions found for ${year} year.`);
+                        router.push('/dashboard');
+                        return;
+                    }
                     setQuestions(data);
                     // Pre-fill array with proper nulls 
                     setSelectedAnswers(new Array(data.length).fill(null));

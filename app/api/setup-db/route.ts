@@ -34,6 +34,19 @@ export async function GET() {
                 ALTER TABLE users ADD COLUMN IF NOT EXISTS is_blocked BOOLEAN DEFAULT FALSE;
                 ALTER TABLE questions ADD COLUMN IF NOT EXISTS keywords TEXT;
                 ALTER TABLE questions ADD COLUMN IF NOT EXISTS image_url TEXT;
+                ALTER TABLE questions ADD COLUMN IF NOT EXISTS year_category VARCHAR(20) DEFAULT '1st';
+
+                CREATE TABLE IF NOT EXISTS event_settings (
+                    id SERIAL PRIMARY KEY,
+                    is_active BOOLEAN DEFAULT FALSE,
+                    end_time TIMESTAMP,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                
+                -- Initialize event settings if empty
+                INSERT INTO event_settings (id, is_active)
+                SELECT 1, FALSE
+                WHERE NOT EXISTS (SELECT 1 FROM event_settings WHERE id = 1);
             `);
 
             return NextResponse.json({

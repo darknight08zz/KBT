@@ -27,6 +27,10 @@ export default function AdminPage() {
         type: 'mcq'
     });
 
+    // Event State
+    const [eventStatus, setEventStatus] = useState<{ is_active: boolean; end_time: string | null }>({ is_active: false, end_time: null });
+    const [timeLeft, setTimeLeft] = useState<string>('');
+
     useEffect(() => {
         // Basic Role Check
         const role = sessionStorage.getItem('kbt-role');
@@ -42,6 +46,50 @@ export default function AdminPage() {
         const qRes = await fetch('/api/admin/questions');
         if (usersRes.ok) setUsers(await usersRes.json());
         if (qRes.ok) setQuestions(await qRes.json());
+        fetchEventStatus();
+    };
+
+    const fetchEventStatus = async () => {
+        const res = await fetch('/api/admin/event');
+        if (res.ok) {
+            const data = await res.json();
+            setEventStatus(data);
+        }
+    };
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            if (eventStatus.is_active && eventStatus.end_time) {
+                const end = new Date(eventStatus.end_time).getTime();
+                const now = new Date().getTime();
+                const dist = end - now;
+
+                if (dist < 0) {
+                    setEventStatus({ ...eventStatus, is_active: false });
+                    setTimeLeft('EXPIRED');
+                } else {
+                    const hours = Math.floor((dist % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((dist % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((dist % (1000 * 60)) / 1000);
+                    setTimeLeft(`${hours}h ${minutes}m ${seconds}s`);
+                }
+            } else {
+                setTimeLeft('');
+            }
+        }, 1000);
+        return () => clearInterval(timer);
+    }, [eventStatus]);
+
+    const handleEventAction = async (action: 'start' | 'stop') => {
+        const res = await fetch('/api/admin/event', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action })
+        });
+        if (res.ok) {
+            const data = await res.json();
+            setEventStatus(data);
+        }
     };
 
     const handleAddQuestion = async (e: React.FormEvent) => {
@@ -301,6 +349,15 @@ export default function AdminPage() {
                                             <option value="short_answer">Short Answer</option>
                                             <option value="long_answer">Long Answer</option>
                                         </select>
+                                        <select
+                                            className="w-40 bg-black/50 border border-white/10 p-3 rounded-lg capitalize"
+                                            value={(newQuestion as any).year_category || '1st'}
+                                            onChange={e => setNewQuestion({ ...newQuestion, year_category: e.target.value } as any)}
+                                        >
+                                            <option value="1st">1st Year</option>
+                                            <option value="2nd">2nd Year</option>
+                                            <option value="3rd">3rd Year</option>
+                                        </select>
                                     </div>
                                     <button className="w-full btn-primary">Add Question</button>
                                 </form>
@@ -322,6 +379,7 @@ export default function AdminPage() {
                                                         }`}>
                                                         {q.difficulty || 'medium'}
                                                     </span>
+                                                    <span className="text-xs font-bold px-2 py-1 bg-purple-500/20 text-purple-300 rounded uppercase">{(q as any).year_category || '1st'}</span>
                                                     <h4 className="font-bold"><span className="text-primary mr-2">Question #{idx + 1}:</span> {q.text}</h4>
                                                     {q.image_url && <span className="text-xs text-blue-400 border border-blue-400 px-1 rounded">IMG</span>}
                                                 </div>
@@ -346,6 +404,40 @@ export default function AdminPage() {
                     {/* CONTROLS TAB */}
                     {activeTab === 'controls' && (
                         <div className="space-y-8">
+                            {/* EVENT TIMER CONTROL */}
+                            <div className="p-6 rounded-xl border border-blue-500/30 bg-blue-500/5">
+                                <h3 className="text-blue-400 font-bold text-lg mb-4">Event Timer Control</h3>
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-gray-400 mb-2">Status:
+                                            <span className={`ml-2 font-bold ${eventStatus.is_active ? 'text-green-400' : 'text-red-400'}`}>
+                                                {eventStatus.is_active ? 'ACTIVE' : 'INACTIVE'}
+                                            </span>
+                                        </p>
+                                        {eventStatus.is_active && (
+                                            <p className="text-2xl font-mono font-bold">{timeLeft}</p>
+                                        )}
+                                    </div>
+                                    <div className="flex gap-4">
+                                        {!eventStatus.is_active ? (
+                                            <button
+                                                onClick={() => handleEventAction('start')}
+                                                className="px-6 py-3 bg-green-600 hover:bg-green-500 rounded-lg font-bold"
+                                            >
+                                                Start Event (6 Hours)
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={() => handleEventAction('stop')}
+                                                className="px-6 py-3 bg-red-600 hover:bg-red-500 rounded-lg font-bold animate-pulse"
+                                            >
+                                                STOP EVENT
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
                             <div className="p-6 rounded-xl border border-red-500/30 bg-red-500/5">
                                 <h3 className="text-red-400 font-bold text-lg mb-2">Danger Zone</h3>
                                 <p className="text-gray-400 mb-6">Resetting the leaderboard will remove ALL records for every participant. This action cannot be undone.</p>
