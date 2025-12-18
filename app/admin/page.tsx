@@ -310,7 +310,7 @@ export default function AdminPage() {
                             <div>
                                 <h3 className="font-bold text-lg mb-4">Question Bank ({questions.length})</h3>
                                 <div className="space-y-4">
-                                    {questions.map((q) => (
+                                    {questions.map((q, idx) => (
                                         <div key={q.id} className="p-4 rounded-xl bg-white/5 border border-white/5 flex justify-between items-start">
                                             <div>
                                                 <div className="flex items-center gap-3 mb-2">
@@ -322,7 +322,7 @@ export default function AdminPage() {
                                                         }`}>
                                                         {q.difficulty || 'medium'}
                                                     </span>
-                                                    <h4 className="font-bold">{q.text}</h4>
+                                                    <h4 className="font-bold"><span className="text-primary mr-2">Question #{idx + 1}:</span> {q.text}</h4>
                                                     {q.image_url && <span className="text-xs text-blue-400 border border-blue-400 px-1 rounded">IMG</span>}
                                                 </div>
                                                 <div className="flex gap-2 text-sm text-gray-400 flex-wrap">
