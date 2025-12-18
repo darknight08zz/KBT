@@ -213,38 +213,34 @@ export default function AdminPage() {
                                                     accept="image/*"
                                                     className="hidden"
                                                     id="file-upload"
-                                                    onChange={async (e) => {
+                                                    onChange={(e) => {
                                                         const file = e.target.files?.[0];
                                                         if (!file) return;
 
-                                                        const formData = new FormData();
-                                                        formData.append('file', file);
-
-                                                        try {
-                                                            const res = await fetch('/api/upload', {
-                                                                method: 'POST',
-                                                                body: formData
-                                                            });
-                                                            const data = await res.json();
-                                                            if (data.url) {
-                                                                setNewQuestion({ ...newQuestion, image_url: data.url } as any);
-                                                            } else {
-                                                                alert('Upload failed');
-                                                            }
-                                                        } catch (err) {
-                                                            console.error(err);
-                                                            alert('Upload error');
+                                                        // Limit to 2MB to prevent huge DB rows
+                                                        if (file.size > 2 * 1024 * 1024) {
+                                                            alert("File too large. Please select an image under 2MB.");
+                                                            return;
                                                         }
+
+                                                        const reader = new FileReader();
+                                                        reader.onloadend = () => {
+                                                            const base64 = reader.result as string;
+                                                            setNewQuestion({ ...newQuestion, image_url: base64 } as any);
+                                                        };
+                                                        reader.readAsDataURL(file);
                                                     }}
                                                 />
                                                 <label
                                                     htmlFor="file-upload"
                                                     className="px-3 py-2 bg-white/10 hover:bg-white/20 rounded cursor-pointer text-xs font-bold transition-colors"
                                                 >
-                                                    Upload File
+                                                    Upload File (Max 2MB)
                                                 </label>
                                                 {(newQuestion as any).image_url && (
-                                                    <span className="text-xs text-green-400 self-center">Image Set!</span>
+                                                    <span className="text-xs text-green-400 self-center">
+                                                        {(newQuestion as any).image_url.startsWith('data:') ? 'Image Loaded' : 'URL Set'}
+                                                    </span>
                                                 )}
                                             </div>
                                         </div>
