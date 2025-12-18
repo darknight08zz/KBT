@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Question } from '@/app/types';
 import QuestionPanel from '@/app/components/QuestionPanel';
@@ -9,7 +9,7 @@ import Timer from '@/app/components/Timer';
 import Modal from '@/app/components/Modal';
 import AntiCheatProvider from '@/app/components/AntiCheatProvider';
 
-export default function QuizPage() {
+function QuizContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const year = searchParams.get('year');
@@ -332,5 +332,13 @@ export default function QuizPage() {
                 </main>
             </div >
         </AntiCheatProvider >
+    );
+}
+
+export default function QuizPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-black text-white flex items-center justify-center font-bold animate-pulse">Loading Arena...</div>}>
+            <QuizContent />
+        </Suspense>
     );
 }
