@@ -107,12 +107,27 @@ export default function QuizPage() {
                     if (JSON.stringify(userAns.sort()) === q.answer) score += 5;
                 }
             } else if (q.type === 'short_answer' || q.type === 'long_answer') {
-                // Case insensitive match for short answer
-                if (typeof userAns === 'string' && userAns.trim().toLowerCase() === q.answer.trim().toLowerCase()) {
+                const ansStr = typeof userAns === 'string' ? userAns.trim() : '';
+
+                // Smart Matching (Keywords)
+                if (q.keywords && q.keywords.length > 0) {
+                    // Check if ANY of the keywords are present (OR logic) or ALL? 
+                    // Usually "keywords" implies key points needed. Let's say if it contains *significant* overlap.
+                    // Simple logic: if comma separated keywords, check if user answer contains AT LEAST ONE or ALL?
+                    // "Block that is important that should be match" -> suggest ALL keywords implementation or substantial matching.
+                    // Improved Logic: Check if ALL provided keywords are in the answer (insensitive).
+                    const keywordsArr = Array.isArray(q.keywords) ? q.keywords : (q.keywords as string).split(',').map(k => k.trim());
+                    const matchesAll = keywordsArr.every(k => ansStr.toLowerCase().includes(k.toLowerCase()));
+
+                    if (matchesAll) score += 5;
+                }
+                // Fallback to exact match (relaxed)
+                else if (ansStr.toLowerCase() === q.answer.trim().toLowerCase()) {
                     score += 5;
                 }
-                // Long answer: manual grading (no points auto-added or maybe partial?) -> Plan said "submitted only".
-                if (q.type === 'long_answer') score += 0; // Grade later
+
+                // Long answer usually needs manual review, but if keywords match we give points auto.
+                // If not matched, we leave it as 0 (or manual).
             } else {
                 // MCQ
                 if (userAns === q.answer) {
@@ -240,8 +255,8 @@ export default function QuizPage() {
                                         onClick={handleNext}
                                         disabled={!selectedAnswers[currentQuestionIndex]}
                                         className={`px-8 py-3 rounded-xl font-bold transition-all transform hover:scale-105 ${!selectedAnswers[currentQuestionIndex]
-                                                ? 'bg-white/10 text-gray-500 cursor-not-allowed'
-                                                : 'bg-primary hover:bg-primary-glow text-white shadow-lg shadow-primary/20'
+                                            ? 'bg-white/10 text-gray-500 cursor-not-allowed'
+                                            : 'bg-primary hover:bg-primary-glow text-white shadow-lg shadow-primary/20'
                                             }`}
                                     >
                                         Next Question

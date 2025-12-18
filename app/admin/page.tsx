@@ -127,13 +127,17 @@ export default function AdminPage() {
                                             <th className="p-3">Email</th>
                                             <th className="p-3">Role</th>
                                             <th className="p-3">Joined</th>
+                                            <th className="p-3">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-white/5">
                                         {users.map(u => (
                                             <tr key={u.id} className="hover:bg-white/5">
                                                 <td className="p-3 text-gray-500">#{u.id}</td>
-                                                <td className="p-3 font-bold">{u.username}</td>
+                                                <td className="p-3 flex items-center gap-2">
+                                                    <span className="font-bold">{u.username}</span>
+                                                    {u.is_blocked && <span className="text-xs bg-red-500 text-white px-1 rounded">BLOCKED</span>}
+                                                </td>
                                                 <td className="p-3 text-blue-400">{u.email || '-'}</td>
                                                 <td className="p-3">
                                                     <span className={`px-2 py-1 rounded text-xs ${u.role === 'admin' ? 'bg-purple-500/20 text-purple-300' : 'bg-green-500/20 text-green-300'}`}>
@@ -141,6 +145,36 @@ export default function AdminPage() {
                                                     </span>
                                                 </td>
                                                 <td className="p-3 text-gray-500">{new Date(u.created_at || '').toLocaleDateString()}</td>
+                                                <td className="p-3 flex gap-2">
+                                                    {u.role !== 'admin' && (
+                                                        <>
+                                                            <button
+                                                                onClick={async () => {
+                                                                    if (!confirm(`Are you sure you want to ${u.is_blocked ? 'unblock' : 'block'} ${u.username}?`)) return;
+                                                                    await fetch('/api/admin/users', {
+                                                                        method: 'PATCH',
+                                                                        headers: { 'Content-Type': 'application/json' },
+                                                                        body: JSON.stringify({ id: u.id, is_blocked: !u.is_blocked })
+                                                                    });
+                                                                    fetchData();
+                                                                }}
+                                                                className={`px-3 py-1 rounded text-xs font-bold ${u.is_blocked ? 'bg-green-600 hover:bg-green-500' : 'bg-yellow-600 hover:bg-yellow-500'}`}
+                                                            >
+                                                                {u.is_blocked ? 'Unblock' : 'Block'}
+                                                            </button>
+                                                            <button
+                                                                onClick={async () => {
+                                                                    if (!confirm(`Permanently delete ${u.username}?`)) return;
+                                                                    await fetch(`/api/admin/users?id=${u.id}`, { method: 'DELETE' });
+                                                                    fetchData();
+                                                                }}
+                                                                className="px-3 py-1 bg-red-600 hover:bg-red-500 rounded text-xs font-bold"
+                                                            >
+                                                                Remove
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -164,6 +198,64 @@ export default function AdminPage() {
                                         onChange={e => setNewQuestion({ ...newQuestion, text: e.target.value })}
                                         required
                                     />
+                                    {/* Image URL & Keywords */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <input
+                                                placeholder="Image URL (or upload below)"
+                                                className="w-full bg-black/50 border border-white/10 p-3 rounded-lg"
+                                                value={(newQuestion as any).image_url || ''}
+                                                onChange={e => setNewQuestion({ ...newQuestion, image_url: e.target.value } as any)}
+                                            />
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    id="file-upload"
+                                                    onChange={async (e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (!file) return;
+
+                                                        const formData = new FormData();
+                                                        formData.append('file', file);
+
+                                                        try {
+                                                            const res = await fetch('/api/upload', {
+                                                                method: 'POST',
+                                                                body: formData
+                                                            });
+                                                            const data = await res.json();
+                                                            if (data.url) {
+                                                                setNewQuestion({ ...newQuestion, image_url: data.url } as any);
+                                                            } else {
+                                                                alert('Upload failed');
+                                                            }
+                                                        } catch (err) {
+                                                            console.error(err);
+                                                            alert('Upload error');
+                                                        }
+                                                    }}
+                                                />
+                                                <label
+                                                    htmlFor="file-upload"
+                                                    className="px-3 py-2 bg-white/10 hover:bg-white/20 rounded cursor-pointer text-xs font-bold transition-colors"
+                                                >
+                                                    Upload File
+                                                </label>
+                                                {(newQuestion as any).image_url && (
+                                                    <span className="text-xs text-green-400 self-center">Image Set!</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <input
+                                            placeholder="Keywords (Comma separated, for smart match)"
+                                            className="bg-black/50 border border-white/10 p-3 rounded-lg h-full"
+                                            value={(newQuestion as any).keywords || ''}
+                                            onChange={e => setNewQuestion({ ...newQuestion, keywords: e.target.value } as any)}
+                                        />
+                                    </div>
+
                                     <div className="grid grid-cols-2 gap-4">
                                         {(newQuestion.type === 'mcq' || newQuestion.type === 'multiselect') && newQuestion.options.map((opt, i) => (
                                             <input
@@ -182,7 +274,7 @@ export default function AdminPage() {
                                     </div>
                                     <div className="flex gap-4">
                                         <input
-                                            placeholder="Correct Answer (Must match exactly)"
+                                            placeholder="Correct Answer"
                                             className="flex-1 bg-black/50 border border-white/10 p-3 rounded-lg"
                                             value={newQuestion.answer}
                                             onChange={e => setNewQuestion({ ...newQuestion, answer: e.target.value })}
@@ -235,11 +327,13 @@ export default function AdminPage() {
                                                         {q.difficulty || 'medium'}
                                                     </span>
                                                     <h4 className="font-bold">{q.text}</h4>
+                                                    {q.image_url && <span className="text-xs text-blue-400 border border-blue-400 px-1 rounded">IMG</span>}
                                                 </div>
-                                                <div className="flex gap-2 text-sm text-gray-400">
-                                                    {q.options.map(opt => (
-                                                        <span key={opt} className={opt === q.answer ? 'text-green-400 font-bold' : ''}>{opt}</span>
+                                                <div className="flex gap-2 text-sm text-gray-400 flex-wrap">
+                                                    {q.options.map((opt, idx) => (
+                                                        <span key={`${q.id}-opt-${idx}`} className={opt === q.answer ? 'text-green-400 font-bold' : ''}>{opt}</span>
                                                     ))}
+                                                    {q.keywords && <span className="text-purple-400 ml-2">Keywords: {Array.isArray(q.keywords) ? q.keywords.join(', ') : q.keywords}</span>}
                                                 </div>
                                             </div>
                                             <button onClick={() => handleDeleteQuestion(q.id)} className="text-red-400 hover:bg-red-500/10 p-2 rounded">

@@ -29,6 +29,13 @@ export async function GET() {
         );
       `);
 
+            // 3. Apply Migrations (Safe to run multiple times)
+            await client.query(`
+                ALTER TABLE users ADD COLUMN IF NOT EXISTS is_blocked BOOLEAN DEFAULT FALSE;
+                ALTER TABLE questions ADD COLUMN IF NOT EXISTS keywords TEXT;
+                ALTER TABLE questions ADD COLUMN IF NOT EXISTS image_url TEXT;
+            `);
+
             return NextResponse.json({
                 message: 'Database initialized successfully',
                 tables: ['users', 'leaderboard']

@@ -15,12 +15,13 @@ export async function GET() {
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { text, options, answer, topic, difficulty, type } = body;
+        const { text, options, answer, topic, difficulty, type, keywords, image_url } = body;
 
         const client = await pool.connect();
+        const keywordsStr = Array.isArray(keywords) ? keywords.join(',') : (keywords || '');
         await client.query(
-            'INSERT INTO questions (text, options, answer, topic, difficulty, type) VALUES ($1, $2, $3, $4, $5, $6)',
-            [text, options, answer, topic, difficulty || 'medium', type || 'mcq']
+            'INSERT INTO questions (text, options, answer, topic, difficulty, type, keywords, image_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+            [text, options, answer, topic, difficulty || 'medium', type || 'mcq', keywordsStr, image_url]
         );
         client.release();
 

@@ -4,6 +4,7 @@ export interface User {
     email?: string;
     university?: string;
     role: 'admin' | 'player';
+    is_blocked?: boolean;
     created_at?: string;
 }
 
@@ -14,6 +15,8 @@ export interface Question {
     topic?: string;
     difficulty?: 'easy' | 'medium' | 'hard';
     type?: 'mcq' | 'multiselect' | 'short_answer' | 'long_answer';
+    image_url?: string;
+    keywords?: string[]; // For smart matching
 }
 
 export interface LeaderboardEntry {

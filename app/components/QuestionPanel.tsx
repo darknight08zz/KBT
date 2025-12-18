@@ -36,6 +36,12 @@ export default function QuestionPanel({ question, currentQuestionIndex, totalQue
                 {question.text}
             </h2>
 
+            {question.image_url && (
+                <div className="mb-6 rounded-xl overflow-hidden border border-white/10">
+                    <img src={question.image_url} alt="Question Attachment" className="w-full h-auto max-h-64 object-contain bg-black/50" />
+                </div>
+            )}
+
             <div className="space-y-3 mb-8">
                 {(!question.type || question.type === 'mcq') && question.options.map((option, idx) => (
                     <button
