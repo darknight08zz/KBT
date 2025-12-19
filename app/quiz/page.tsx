@@ -22,7 +22,7 @@ function QuizContent() {
     const [username, setUsername] = useState<string>('');
 
     // Timers
-    const [eventTimeLeft, setEventTimeLeft] = useState<number>(0);
+    const [eventTimeLeft, setEventTimeLeft] = useState<number | null>(null);
     const [questionTimeLeft, setQuestionTimeLeft] = useState<number>(0);
     const [isQuestionTimerPaused, setIsQuestionTimerPaused] = useState(false);
 
@@ -313,7 +313,15 @@ function QuizContent() {
                     {/* Global Event Timer */}
                     <div className="flex flex-col items-end">
                         <span className="text-[10px] text-gray-400 uppercase tracking-wider">Event Ends In</span>
-                        <Timer timeLeft={eventTimeLeft} setTimeLeft={setEventTimeLeft} onTimeUp={handleEventTimeUp} />
+                        {eventTimeLeft !== null ? (
+                            <Timer
+                                timeLeft={eventTimeLeft}
+                                setTimeLeft={(t) => setEventTimeLeft(t)}
+                                onTimeUp={handleEventTimeUp}
+                            />
+                        ) : (
+                            <div className="glass-panel px-4 py-2 text-xl font-mono font-bold text-gray-500">--:--:--</div>
+                        )}
                     </div>
                 </header>
 
