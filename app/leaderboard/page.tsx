@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTransition } from '@/app/components/TransitionProvider';
 import Navbar from '@/app/components/Navbar';
 import Footer from '@/app/components/Footer';
 
@@ -12,7 +12,7 @@ interface LeaderboardEntry {
 }
 
 export default function LeaderboardPage() {
-    const router = useRouter();
+    const { navigate } = useTransition();
     const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -83,7 +83,7 @@ export default function LeaderboardPage() {
 
                 {/* Back Button */}
                 <button
-                    onClick={() => router.back()}
+                    onClick={() => navigate('/')}
                     className="mb-8 flex items-center gap-2 text-gray-400 hover:text-white transition-colors group"
                 >
                     <span className="p-2 rounded-full bg-white/5 group-hover:bg-white/10 transition-colors">

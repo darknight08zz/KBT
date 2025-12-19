@@ -1,11 +1,12 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useTransition } from '@/app/components/TransitionProvider';
 import Navbar from '@/app/components/Navbar';
 import Footer from '@/app/components/Footer';
 
 export default function LandingPage() {
-  const router = useRouter();
+  const { navigate } = useTransition();
+
 
   return (
     <div className="min-h-screen selection:bg-primary/30 font-sans">
@@ -42,20 +43,21 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center gap-4 w-full justify-center">
+          <div className="flex flex-col sm:flex-row items-center gap-4 w-full justify-center flex-wrap">
             <a
               href="https://forms.gle/DA4UETxpZjZPEm2WA"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-primary text-black font-bold py-4 px-8 rounded-lg hover:bg-primary/90 transition-colors text-lg"
+              className="bg-primary text-black font-bold py-4 px-8 rounded-lg hover:bg-primary/90 transition-colors text-lg shadow-lg shadow-primary/20"
             >
               Register Now →
             </a>
+
             <button
-              onClick={() => router.push('/leaderboard')}
+              onClick={() => navigate('/leaderboard')}
               className="bg-transparent border border-white/20 text-white font-bold py-4 px-8 rounded-lg hover:bg-white/5 transition-colors text-lg"
             >
-              View Leaderboard
+              Leaderboard
             </button>
           </div>
         </section>

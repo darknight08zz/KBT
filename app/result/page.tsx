@@ -1,12 +1,13 @@
 'use client';
 
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
+import { useTransition } from '@/app/components/TransitionProvider';
 import { LeaderboardEntry } from '@/app/types';
 
 function ResultContent() {
     const searchParams = useSearchParams();
-    const router = useRouter();
+    const { navigate } = useTransition();
 
     // State for user results
     const [score, setScore] = useState(parseInt(searchParams.get('score') || '0'));
@@ -84,12 +85,12 @@ function ResultContent() {
                 )}
 
                 <div className="mt-10 flex gap-4 justify-center">
-                    <button onClick={() => router.push('/dashboard')} className="btn-primary px-8">
+                    <button onClick={() => navigate('/dashboard')} className="btn-primary px-8">
                         Back to Dashboard
                     </button>
                     {status !== 'disqualified' && (
-                        <button onClick={() => window.location.href = '/quiz'} className="px-8 py-3 rounded-full font-bold text-white hover:bg-white/10 transition-colors">
-                            Retry Quiz
+                        <button onClick={() => navigate('/dashboard')} className="px-8 py-3 rounded-full font-bold text-white hover:bg-white/10 transition-colors">
+                            Return to Arena
                         </button>
                     )}
                 </div>

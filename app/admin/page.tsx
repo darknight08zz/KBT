@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTransition } from '@/app/components/TransitionProvider';
 import { User, Question } from '@/app/types';
 
 interface QuestionWithId extends Question {
@@ -11,7 +11,7 @@ interface QuestionWithId extends Question {
 import Modal from '@/app/components/Modal';
 
 export default function AdminPage() {
-    const router = useRouter();
+    const { navigate } = useTransition();
     const [activeTab, setActiveTab] = useState<'users' | 'questions' | 'controls'>('users');
     const [users, setUsers] = useState<User[]>([]);
     const [questions, setQuestions] = useState<QuestionWithId[]>([]);
@@ -35,7 +35,7 @@ export default function AdminPage() {
         // Basic Role Check
         const role = sessionStorage.getItem('kbt-role');
         if (role !== 'admin') {
-            router.push('/dashboard');
+            navigate('/dashboard');
             return;
         }
         fetchData();
@@ -143,7 +143,7 @@ export default function AdminPage() {
                         <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">Event Control Center</h1>
                         <p className="text-gray-400">Manage Users, Questions & Live Event Status</p>
                     </div>
-                    <button onClick={() => router.push('/dashboard')} className="px-4 py-2 bg-white/5 rounded-lg hover:bg-white/10 text-sm">
+                    <button onClick={() => navigate('/dashboard')} className="px-4 py-2 bg-white/5 rounded-lg hover:bg-white/10 text-sm">
                         Exit to Dashboard
                     </button>
                 </header>
@@ -410,7 +410,7 @@ export default function AdminPage() {
                             {/* EVENT TIMER CONTROL */}
                             {/* EVENT TIMER CONTROL */}
                             <div className="p-6 rounded-xl border border-purple-500/30 bg-purple-500/5">
-                                <h3 className="text-purple-400 font-bold text-lg mb-4">Event Timer Control (6 Hours)</h3>
+                                <h3 className="text-purple-400 font-bold text-lg mb-4">Event Timer Control (12 Hours)</h3>
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                     <div>
                                         <p className="text-gray-400 mb-2">Timer Status:</p>
@@ -426,7 +426,7 @@ export default function AdminPage() {
                                             disabled={eventStatus.is_active && !!eventStatus.end_time}
                                             className="w-full md:w-auto px-6 py-3 bg-purple-600 hover:bg-purple-500 rounded-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
-                                            Start 6-Hour Timer
+                                            Start 12-Hour Timer
                                         </button>
                                     </div>
                                 </div>

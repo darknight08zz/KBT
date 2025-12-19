@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, FormEvent, Suspense } from 'react';
+import { useTransition } from '@/app/components/TransitionProvider';
 
 interface AuthResponse {
     success?: boolean;
@@ -11,8 +11,9 @@ interface AuthResponse {
     message?: string;
 }
 
-export default function LoginPage() {
-    const router = useRouter();
+function LoginContent() {
+    const { navigate } = useTransition();
+
     const [isLogin, setIsLogin] = useState<boolean>(true);
     const [role, setRole] = useState<'admin' | 'player'>('player');
     const [username, setUsername] = useState<string>('');
@@ -55,7 +56,7 @@ export default function LoginPage() {
                 // Login Success
                 if (data.username) sessionStorage.setItem('kbt-username', data.username);
                 if (data.role) sessionStorage.setItem('kbt-role', data.role);
-                router.push('/dashboard');
+                navigate('/dashboard');
             } else {
                 // Register Success
                 setMessage('Registration successful! Please login.');
@@ -77,8 +78,9 @@ export default function LoginPage() {
     return (
         <div className="min-h-screen app-background flex flex-col items-center justify-center p-4 relative overflow-hidden">
 
+
             <button
-                onClick={() => router.push('/')}
+                onClick={() => navigate('/')}
                 className="absolute top-8 left-8 flex items-center gap-2 text-gray-400 hover:text-white transition-colors z-50 font-bold text-sm uppercase tracking-widest"
             >
                 ← Back to Home
@@ -214,5 +216,13 @@ export default function LoginPage() {
 
             </div>
         </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-black text-white flex items-center justify-center">Loading...</div>}>
+            <LoginContent />
+        </Suspense>
     );
 }

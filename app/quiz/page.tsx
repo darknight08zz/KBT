@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { useTransition } from '@/app/components/TransitionProvider';
 import { Question } from '@/app/types';
 import QuestionPanel from '@/app/components/QuestionPanel';
 import Timer from '@/app/components/Timer';
@@ -10,7 +11,7 @@ import Modal from '@/app/components/Modal';
 import AntiCheatProvider from '@/app/components/AntiCheatProvider';
 
 function QuizContent() {
-    const router = useRouter();
+    const { navigate } = useTransition();
     const searchParams = useSearchParams();
     const year = searchParams.get('year');
 
@@ -19,14 +20,38 @@ function QuizContent() {
     const [selectedAnswers, setSelectedAnswers] = useState<(string | string[] | null)[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [username, setUsername] = useState<string>('');
-    const [timeLeft, setTimeLeft] = useState(600); // 10 minutes total
-    const [startTime] = useState(Date.now());
+
+    // Timers
+    const [eventTimeLeft, setEventTimeLeft] = useState<number>(0);
+    const [questionTimeLeft, setQuestionTimeLeft] = useState<number>(0);
+    const [isQuestionTimerPaused, setIsQuestionTimerPaused] = useState(false);
+
+    // Modals
     const [isExitModalOpen, setIsExitModalOpen] = useState(false);
+    const [isLockModalOpen, setIsLockModalOpen] = useState(false);
+
+    const getTimerForDifficulty = (diff: string | undefined): number => {
+        switch (diff?.toLowerCase()) {
+            case 'easy': return 15;
+            case 'medium': return 60;
+            case 'hard': return 180;
+            default: return 60;
+        }
+    };
+
+    // Reset Question Timer on Question Change
+    useEffect(() => {
+        if (questions.length > 0 && questions[currentQuestionIndex]) {
+            const t = getTimerForDifficulty(questions[currentQuestionIndex].difficulty);
+            setQuestionTimeLeft(t);
+            setIsQuestionTimerPaused(false);
+        }
+    }, [currentQuestionIndex, questions]);
 
     useEffect(() => {
         const storedUser = sessionStorage.getItem('kbt-username');
         if (!storedUser) {
-            router.push('/login');
+            navigate('/login');
             return;
         }
         setUsername(storedUser);
@@ -40,8 +65,14 @@ function QuizContent() {
 
                 if (!eventData.is_active || (eventData.end_time && new Date(eventData.end_time).getTime() < Date.now())) {
                     alert("The event is not currently active.");
-                    router.push('/dashboard');
+                    navigate('/dashboard');
                     return;
+                }
+
+                // Set Event Timer
+                if (eventData.end_time) {
+                    const diff = Math.floor((new Date(eventData.end_time).getTime() - Date.now()) / 1000);
+                    setEventTimeLeft(diff > 0 ? diff : 0);
                 }
 
                 // 2. Check User Status
@@ -50,14 +81,14 @@ function QuizContent() {
 
                 if (statusData.hasAttempted) {
                     alert("You have already attempted the quiz.");
-                    router.push('/result');
+                    navigate('/result');
                     return;
                 }
 
                 // 3. Fetch Questions for Year
                 if (!year) {
-                    alert("No year selected. Please start from the dashboard.");
-                    router.push('/dashboard');
+                    alert("No year assigned. Please start from the dashboard.");
+                    navigate('/dashboard');
                     return;
                 }
 
@@ -66,7 +97,7 @@ function QuizContent() {
                     const data = await res.json();
                     if (data.length === 0) {
                         alert(`No questions found for ${year} year.`);
-                        router.push('/dashboard');
+                        navigate('/dashboard');
                         return;
                     }
                     setQuestions(data);
@@ -78,20 +109,29 @@ function QuizContent() {
             }
         };
         fetchQuestions();
-    }, [router]);
+    }, [navigate]);
 
     const handleAnswer = (answer: string | string[]) => {
-        const newAnswers = [...selectedAnswers];
+        // If time is up, prevent answering
+        if (questionTimeLeft <= 0) return;
 
-        // For multiselect, if we receive a single value, we toggle it (logic moved to parent or kept here?)
-        // Actually simplest is QuestionPanel handles toggling and sends full array back, 
-        // OR QuestionPanel sends the toggled value and we handle logic.
-        // Let's assume QuestionPanel sends the FINAL new value for that question.
+        const newAnswers = [...selectedAnswers];
         newAnswers[currentQuestionIndex] = answer;
         setSelectedAnswers(newAnswers);
     };
 
     const handleNext = () => {
+        // If question time is NOT up, prompt "Lock Kiya Jaye?"
+        if (questionTimeLeft > 0) {
+            setIsQuestionTimerPaused(true);
+            setIsLockModalOpen(true);
+        } else {
+            // Time up, proceed immediately
+            proceedToNext();
+        }
+    };
+
+    const proceedToNext = () => {
         if (currentQuestionIndex < questions.length - 1) {
             setCurrentQuestionIndex(prev => prev + 1);
         } else {
@@ -99,9 +139,22 @@ function QuizContent() {
         }
     };
 
+    const handleConfirmLock = () => {
+        setIsLockModalOpen(false);
+        setIsQuestionTimerPaused(false);
+        proceedToNext();
+    };
+
+    const handleCancelLock = () => {
+        setIsLockModalOpen(false);
+        setIsQuestionTimerPaused(false);
+    };
+
+    const [startTime] = useState(Date.now());
+
     // Removed handlePrev as per strict flow requirements
 
-    const handleTimeUp = () => {
+    const handleEventTimeUp = () => {
         handleSubmit();
     };
 
@@ -182,7 +235,7 @@ function QuizContent() {
             });
 
             if (res.ok) {
-                router.push('/result');
+                navigate('/result');
             } else {
                 alert('Failed to submit score. Please try again.');
                 setIsSubmitting(false);
@@ -210,10 +263,10 @@ function QuizContent() {
                 })
             });
             sessionStorage.setItem('kbt-disqualified', 'true'); // Flag to prevent re-entry
-            router.push('/result?status=disqualified');
+            navigate('/result?status=disqualified');
         } catch (err) {
             console.error("Cheat submission failed", err);
-            router.push('/result?status=disqualified');
+            navigate('/result?status=disqualified');
         }
     };
 
@@ -227,8 +280,19 @@ function QuizContent() {
                     type="danger"
                     confirmText="Yes, Quit"
                     cancelText="Stay"
-                    onConfirm={() => router.push('/dashboard')}
+                    onConfirm={() => navigate('/dashboard')}
                     onCancel={() => setIsExitModalOpen(false)}
+                />
+
+                <Modal
+                    isOpen={isLockModalOpen}
+                    title="Lock This Answer?"
+                    message="Are you sure you want to lock this answer and proceed to the next question? This cannot be changed."
+                    type="info"
+                    confirmText="Yes, Lock it! 🔒"
+                    cancelText="Wait, let me think 🤔"
+                    onConfirm={handleConfirmLock}
+                    onCancel={handleCancelLock}
                 />
 
                 {/* Header */}
@@ -246,7 +310,11 @@ function QuizContent() {
                             <p className="text-xs text-secondary">Player: <span className="text-white">{username}</span></p>
                         </div>
                     </div>
-                    <Timer timeLeft={timeLeft} setTimeLeft={setTimeLeft} onTimeUp={handleTimeUp} />
+                    {/* Global Event Timer */}
+                    <div className="flex flex-col items-end">
+                        <span className="text-[10px] text-gray-400 uppercase tracking-wider">Event Ends In</span>
+                        <Timer timeLeft={eventTimeLeft} setTimeLeft={setEventTimeLeft} onTimeUp={handleEventTimeUp} />
+                    </div>
                 </header>
 
                 {/* Main Content */}
@@ -254,14 +322,34 @@ function QuizContent() {
                     <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-3 gap-8">
 
                         {/* Question Panel */}
-                        <div className="lg:col-span-2">
-                            <QuestionPanel
-                                question={questions[currentQuestionIndex]}
-                                currentQuestionIndex={currentQuestionIndex + 1}
-                                totalQuestions={questions.length}
-                                selectedAnswer={selectedAnswers[currentQuestionIndex]}
-                                onAnswer={handleAnswer}
-                            />
+                        <div className="lg:col-span-2 space-y-6">
+                            {/* Question Timer Bar */}
+                            <div className="flex justify-between items-center glass-panel p-4">
+                                <div>
+                                    <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">Question Timer</div>
+                                    <div className={`text-sm font-bold ${questionTimeLeft <= 10 ? 'text-red-500 animate-pulse' : 'text-primary'}`}>
+                                        {questions[currentQuestionIndex]?.difficulty?.toUpperCase()} Level
+                                    </div>
+                                </div>
+                                <div className={`${questionTimeLeft === 0 ? 'opacity-50' : ''}`}>
+                                    <Timer
+                                        timeLeft={questionTimeLeft}
+                                        setTimeLeft={setQuestionTimeLeft}
+                                        onTimeUp={() => { }} // Handled by state
+                                        isRunning={!isQuestionTimerPaused}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className={`transition-opacity duration-300 ${questionTimeLeft <= 0 ? 'opacity-60 pointer-events-none grayscale' : ''}`}>
+                                <QuestionPanel
+                                    question={questions[currentQuestionIndex]}
+                                    currentQuestionIndex={currentQuestionIndex + 1}
+                                    totalQuestions={questions.length}
+                                    selectedAnswer={selectedAnswers[currentQuestionIndex]}
+                                    onAnswer={handleAnswer}
+                                />
+                            </div>
 
                             {/* Navigation */}
                             <div className="flex justify-end mt-8">
@@ -278,8 +366,8 @@ function QuizContent() {
                                 ) : (
                                     <button
                                         onClick={handleNext}
-                                        disabled={!selectedAnswers[currentQuestionIndex]}
-                                        className={`px-8 py-3 rounded-xl font-bold transition-all transform hover:scale-105 ${!selectedAnswers[currentQuestionIndex]
+                                        disabled={!selectedAnswers[currentQuestionIndex] && questionTimeLeft > 0}
+                                        className={`px-8 py-3 rounded-xl font-bold transition-all transform hover:scale-105 ${(!selectedAnswers[currentQuestionIndex] && questionTimeLeft > 0)
                                             ? 'bg-white/10 text-gray-500 cursor-not-allowed'
                                             : 'bg-primary hover:bg-primary-glow text-white shadow-lg shadow-primary/20'
                                             }`}

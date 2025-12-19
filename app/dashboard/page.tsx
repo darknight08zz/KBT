@@ -1,10 +1,11 @@
 'use client';
 
+
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTransition } from '@/app/components/TransitionProvider';
 
 export default function DashboardPage() {
-    const router = useRouter();
+    const { navigate } = useTransition();
     const [username, setUsername] = useState<string>('');
     const [role, setRole] = useState<string>('player');
     const [isYearModalOpen, setIsYearModalOpen] = useState(false);
@@ -18,7 +19,7 @@ export default function DashboardPage() {
         const storedRole = sessionStorage.getItem('kbt-role');
 
         if (!storedUser) {
-            router.push('/login');
+            navigate('/login');
         } else {
             setUsername(storedUser);
             setRole(storedRole || 'player');
@@ -44,11 +45,11 @@ export default function DashboardPage() {
             })
             .catch(err => console.error("Failed to check arena status", err));
 
-    }, [router]);
+    }, [navigate]);
 
     const handleLogout = () => {
         sessionStorage.clear();
-        router.push('/');
+        navigate('/');
     };
 
     const handleStartQuiz = (year: string) => {
@@ -56,7 +57,7 @@ export default function DashboardPage() {
             alert("The Arena is currently closed.");
             return;
         }
-        router.push(`/quiz?year=${year}`);
+        navigate(`/quiz?year=${year}`);
     };
 
     return (
@@ -153,14 +154,14 @@ export default function DashboardPage() {
                         <div className="relative z-10 pt-8">
                             {role === 'admin' ? (
                                 <button
-                                    onClick={() => router.push('/admin')}
+                                    onClick={() => navigate('/admin')}
                                     className="btn-primary"
                                 >
                                     Manage Quiz ⚙️
                                 </button>
                             ) : hasAttempted ? (
                                 <button
-                                    onClick={() => router.push('/result')}
+                                    onClick={() => navigate('/result')}
                                     className="px-8 py-3 rounded-xl font-bold bg-white/10 hover:bg-white/20 text-white border border-white/10 transition-all"
                                 >
                                     View Results 📊
@@ -190,7 +191,7 @@ export default function DashboardPage() {
                         </button>
 
                         <button
-                            onClick={() => router.push('/result')} // Shortcut to leaderboard
+                            onClick={() => navigate('/result')} // Shortcut to leaderboard
                             className="bg-secondary/50 border border-white/5 p-8 rounded-2xl flex flex-col items-center justify-center gap-4 hover:bg-white/5 transition-colors group"
                         >
                             <span className="text-5xl group-hover:scale-110 transition-transform duration-300">🏆</span>
@@ -199,14 +200,13 @@ export default function DashboardPage() {
                         </button>
 
                         <button
-                            onClick={() => router.push('/rules')}
+                            onClick={() => navigate('/rules')}
                             className="bg-white/5 border border-white/5 p-8 rounded-2xl flex flex-col items-center justify-center gap-4 hover:bg-white/10 transition-colors group"
                         >
                             <span className="text-5xl group-hover:scale-110 transition-transform duration-300">📜</span>
                             <span className="text-2xl font-bold font-sans">Rules</span>
                             <span className="text-gray-400 text-sm">Read Competition Format</span>
                         </button>
-
                     </div>
 
                 </div>

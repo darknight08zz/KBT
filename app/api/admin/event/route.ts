@@ -27,7 +27,7 @@ export async function POST(request: Request) {
             await client.query(`
                  UPDATE event_settings 
                  SET is_active = TRUE, 
-                     end_time = NOW() + INTERVAL '6 hours' 
+                     end_time = NOW() + INTERVAL '12 hours' 
                  WHERE id = 1
              `);
         } else if (action === 'enable') {

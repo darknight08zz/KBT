@@ -1,5 +1,7 @@
+import { Suspense } from 'react';
 import './globals.css';
 import { Inter } from 'next/font/google';
+import { TransitionProvider } from './components/TransitionProvider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -28,7 +30,11 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <ConsoleLogger />
-        {children}
+        <Suspense fallback={null}>
+          <TransitionProvider>
+            {children}
+          </TransitionProvider>
+        </Suspense>
       </body>
     </html>
   );

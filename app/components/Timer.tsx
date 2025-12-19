@@ -6,25 +6,27 @@ interface TimerProps {
     timeLeft: number;
     setTimeLeft: (time: number) => void;
     onTimeUp: () => void;
+    isRunning?: boolean;
 }
 
-export default function Timer({ timeLeft, setTimeLeft, onTimeUp }: TimerProps) {
-    const [isActive, setIsActive] = useState<boolean>(true);
+export default function Timer({ timeLeft, setTimeLeft, onTimeUp, isRunning = true }: TimerProps) {
+    // Removed local isActive state as it duplicates upper logic or we can keep it for 0 check
+    // Actually we can rely on timeLeft > 0 check.
 
     useEffect(() => {
         let interval: NodeJS.Timeout | null = null;
-        if (isActive && timeLeft > 0) {
+        if (isRunning && timeLeft > 0) {
             interval = setInterval(() => {
                 setTimeLeft(Math.max(0, timeLeft - 1));
             }, 1000);
-        } else if (timeLeft === 0) {
-            setIsActive(false);
+        } else if (timeLeft === 0 && isRunning) {
+            // If time hits 0 while running, trigger time up
             onTimeUp();
         }
         return () => {
             if (interval) clearInterval(interval);
         };
-    }, [isActive, timeLeft, onTimeUp, setTimeLeft]);
+    }, [isRunning, timeLeft, onTimeUp, setTimeLeft]);
 
     const formatTime = (seconds: number) => {
         const h = Math.floor(seconds / 3600);
