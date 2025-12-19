@@ -75,7 +75,7 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-black relative overflow-hidden">
+        <div className="min-h-screen app-background flex flex-col items-center justify-center p-4 relative overflow-hidden">
 
             <button
                 onClick={() => router.push('/')}
