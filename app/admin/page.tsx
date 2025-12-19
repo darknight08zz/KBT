@@ -57,6 +57,9 @@ export default function AdminPage() {
         }
     };
 
+
+
+
     useEffect(() => {
         const timer = setInterval(() => {
             if (eventStatus.is_active && eventStatus.end_time) {
@@ -80,7 +83,7 @@ export default function AdminPage() {
         return () => clearInterval(timer);
     }, [eventStatus]);
 
-    const handleEventAction = async (action: 'start' | 'stop') => {
+    const handleEventAction = async (action: 'enable' | 'disable' | 'start' | 'stop') => {
         const res = await fetch('/api/admin/event', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -405,35 +408,65 @@ export default function AdminPage() {
                     {activeTab === 'controls' && (
                         <div className="space-y-8">
                             {/* EVENT TIMER CONTROL */}
-                            <div className="p-6 rounded-xl border border-blue-500/30 bg-blue-500/5">
-                                <h3 className="text-blue-400 font-bold text-lg mb-4">Event Timer Control</h3>
+                            {/* EVENT TIMER CONTROL */}
+                            <div className="p-6 rounded-xl border border-purple-500/30 bg-purple-500/5">
+                                <h3 className="text-purple-400 font-bold text-lg mb-4">Event Timer Control (6 Hours)</h3>
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <p className="text-gray-400 mb-2">Status:
-                                            <span className={`ml-2 font-bold ${eventStatus.is_active ? 'text-green-400' : 'text-red-400'}`}>
-                                                {eventStatus.is_active ? 'ACTIVE' : 'INACTIVE'}
-                                            </span>
-                                        </p>
-                                        {eventStatus.is_active && (
-                                            <p className="text-2xl font-mono font-bold">{timeLeft}</p>
+                                        <p className="text-gray-400 mb-2">Timer Status:</p>
+                                        {eventStatus.is_active && eventStatus.end_time ? (
+                                            <p className="text-2xl font-mono font-bold text-purple-400">{timeLeft}</p>
+                                        ) : (
+                                            <p className="text-gray-500 font-mono">No Active Timer</p>
                                         )}
                                     </div>
                                     <div className="flex gap-4">
-                                        {!eventStatus.is_active ? (
-                                            <button
-                                                onClick={() => handleEventAction('start')}
-                                                className="px-6 py-3 bg-green-600 hover:bg-green-500 rounded-lg font-bold"
-                                            >
-                                                Start Event (6 Hours)
-                                            </button>
-                                        ) : (
-                                            <button
-                                                onClick={() => handleEventAction('stop')}
-                                                className="px-6 py-3 bg-red-600 hover:bg-red-500 rounded-lg font-bold animate-pulse"
-                                            >
-                                                STOP EVENT
-                                            </button>
+                                        <button
+                                            onClick={() => handleEventAction('start')}
+                                            disabled={eventStatus.is_active && !!eventStatus.end_time}
+                                            className="px-6 py-3 bg-purple-600 hover:bg-purple-500 rounded-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            Start 6-Hour Timer
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* MANUAL CONTROL */}
+                            <div className="p-6 rounded-xl border border-blue-500/30 bg-blue-500/5">
+                                <h3 className="text-blue-400 font-bold text-lg mb-4">Manual Access Control</h3>
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-gray-400 mb-2">Current Status:
+                                            <span className={`ml-2 font-bold ${eventStatus.is_active ? 'text-green-400' : 'text-red-400'}`}>
+                                                {eventStatus.is_active ? 'OPEN (Users can enter)' : 'LOCKED (Users cannot enter)'}
+                                            </span>
+                                        </p>
+                                        {eventStatus.is_active && !eventStatus.end_time && (
+                                            <p className="text-xs text-blue-300 mt-1">● Manually Enabled (Indefinite)</p>
                                         )}
+                                    </div>
+                                    <div className="flex gap-4">
+                                        <button
+                                            onClick={() => handleEventAction('enable')}
+                                            disabled={eventStatus.is_active}
+                                            className={`px-6 py-3 rounded-lg font-bold transition-all ${eventStatus.is_active
+                                                ? 'bg-gray-600/50 text-gray-400 cursor-not-allowed'
+                                                : 'bg-green-600 hover:bg-green-500 text-white'
+                                                }`}
+                                        >
+                                            Enable Arena
+                                        </button>
+                                        <button
+                                            onClick={() => handleEventAction('disable')}
+                                            disabled={!eventStatus.is_active}
+                                            className={`px-6 py-3 rounded-lg font-bold transition-all ${!eventStatus.is_active
+                                                ? 'bg-gray-600/50 text-gray-400 cursor-not-allowed'
+                                                : 'bg-red-600 hover:bg-red-500 text-white'
+                                                }`}
+                                        >
+                                            Disable Arena
+                                        </button>
                                     </div>
                                 </div>
                             </div>

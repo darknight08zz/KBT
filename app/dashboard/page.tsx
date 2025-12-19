@@ -10,6 +10,7 @@ export default function DashboardPage() {
     const [isYearModalOpen, setIsYearModalOpen] = useState(false);
 
     const [hasAttempted, setHasAttempted] = useState<boolean>(false);
+    const [isArenaOpen, setIsArenaOpen] = useState<boolean>(false);
 
     useEffect(() => {
         // Check session
@@ -34,6 +35,15 @@ export default function DashboardPage() {
                     .catch(err => console.error("Failed to check status", err));
             }
         }
+
+        // Check Arena Status
+        fetch('/api/event/status')
+            .then(res => res.json())
+            .then(data => {
+                setIsArenaOpen(data.is_active);
+            })
+            .catch(err => console.error("Failed to check arena status", err));
+
     }, [router]);
 
     const handleLogout = () => {
@@ -42,6 +52,10 @@ export default function DashboardPage() {
     };
 
     const handleStartQuiz = (year: string) => {
+        if (!isArenaOpen && role !== 'admin') {
+            alert("The Arena is currently closed.");
+            return;
+        }
         router.push(`/quiz?year=${year}`);
     };
 
@@ -153,10 +167,11 @@ export default function DashboardPage() {
                                 </button>
                             ) : (
                                 <button
-                                    onClick={() => setIsYearModalOpen(true)}
-                                    className="btn-primary text-xl px-8 shadow-lg shadow-primary/20"
+                                    onClick={() => isArenaOpen ? setIsYearModalOpen(true) : null}
+                                    disabled={!isArenaOpen}
+                                    className={`btn-primary text-xl px-8 shadow-lg shadow-primary/20 ${!isArenaOpen ? 'opacity-50 cursor-not-allowed grayscale' : ''}`}
                                 >
-                                    Start Quiz 🚀
+                                    {isArenaOpen ? 'Start Quiz 🚀' : 'Arena Locked 🔒'}
                                 </button>
                             )}
                         </div>
@@ -165,12 +180,13 @@ export default function DashboardPage() {
                     {/* Stats / Info Card */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <button
-                            onClick={() => setIsYearModalOpen(true)}
-                            className="bg-gradient-to-br from-primary to-primary-glow p-8 rounded-2xl flex flex-col items-center justify-center gap-4 hover:scale-[1.02] transition-transform group shadow-lg shadow-primary/20"
+                            onClick={() => isArenaOpen ? setIsYearModalOpen(true) : null}
+                            disabled={!isArenaOpen}
+                            className={`bg-gradient-to-br from-primary to-primary-glow p-8 rounded-2xl flex flex-col items-center justify-center gap-4 hover:scale-[1.02] transition-transform group shadow-lg shadow-primary/20 ${!isArenaOpen ? 'opacity-50 cursor-not-allowed grayscale from-gray-700 to-gray-800' : ''}`}
                         >
                             <span className="text-5xl group-hover:scale-110 transition-transform duration-300">⚔️</span>
                             <span className="text-2xl font-bold font-sans">Enter Arena</span>
-                            <span className="text-white/70 text-sm">Start the Quiz Challenge</span>
+                            <span className="text-white/70 text-sm">{isArenaOpen ? 'Start the Quiz Challenge' : 'Waiting for Admin to Open'}</span>
                         </button>
 
                         <button

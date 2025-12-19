@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
@@ -24,12 +25,20 @@ export async function POST(request: Request) {
         if (action === 'start') {
             // Set end_time to 6 hours from now
             await client.query(`
+                 UPDATE event_settings 
+                 SET is_active = TRUE, 
+                     end_time = NOW() + INTERVAL '6 hours' 
+                 WHERE id = 1
+             `);
+        } else if (action === 'enable') {
+            // Enable event indefinitely
+            await client.query(`
                 UPDATE event_settings 
                 SET is_active = TRUE, 
-                    end_time = NOW() + INTERVAL '6 hours' 
+                    end_time = NULL
                 WHERE id = 1
             `);
-        } else if (action === 'stop') {
+        } else if (action === 'stop' || action === 'disable') {
             await client.query('UPDATE event_settings SET is_active = FALSE WHERE id = 1');
         }
 
