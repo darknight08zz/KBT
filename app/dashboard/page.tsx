@@ -116,19 +116,19 @@ export default function DashboardPage() {
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
                             <div className="p-3 bg-green-500/10 rounded-lg border border-green-500/20">
                                 <div className="font-bold text-green-400">Correct Answer</div>
-                                <div className="text-2xl font-mono">+5 pts</div>
+                                <div className="text-2xl font-mono">+1 pt</div>
                             </div>
                             <div className="p-3 bg-red-500/10 rounded-lg border border-red-500/20">
-                                <div className="font-bold text-red-400">Easy Mistake</div>
-                                <div className="text-2xl font-mono">-0 pts</div>
+                                <div className="font-bold text-red-400">Easy Penalty</div>
+                                <div className="text-2xl font-mono">-1 pt</div>
                             </div>
                             <div className="p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
-                                <div className="font-bold text-yellow-400">Medium Mistake</div>
-                                <div className="text-2xl font-mono">-0.5 pts</div>
+                                <div className="font-bold text-yellow-400">Medium Penalty</div>
+                                <div className="text-2xl font-mono">-0.5 pt</div>
                             </div>
-                            <div className="p-3 bg-red-900/20 rounded-lg border border-red-500/40">
-                                <div className="font-bold text-red-300">Hard Mistake</div>
-                                <div className="text-2xl font-mono">-1.0 pts</div>
+                            <div className="p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                                <div className="font-bold text-blue-300">Hard Penalty</div>
+                                <div className="text-2xl font-mono">0 pt</div>
                             </div>
                         </div>
                     </div>
@@ -178,7 +178,7 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Stats / Info Card */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <button
                             onClick={() => isArenaOpen ? setIsYearModalOpen(true) : null}
                             disabled={!isArenaOpen}
@@ -198,6 +198,14 @@ export default function DashboardPage() {
                             <span className="text-gray-400 text-sm">View Global Rankings</span>
                         </button>
 
+                        <button
+                            onClick={() => router.push('/rules')}
+                            className="bg-white/5 border border-white/5 p-8 rounded-2xl flex flex-col items-center justify-center gap-4 hover:bg-white/10 transition-colors group"
+                        >
+                            <span className="text-5xl group-hover:scale-110 transition-transform duration-300">📜</span>
+                            <span className="text-2xl font-bold font-sans">Rules</span>
+                            <span className="text-gray-400 text-sm">Read Competition Format</span>
+                        </button>
 
                     </div>
 

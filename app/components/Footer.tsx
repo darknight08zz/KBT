@@ -38,7 +38,10 @@ export default function Footer() {
             </div>
 
             <div className="max-w-7xl mx-auto px-6 mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center text-xs text-gray-600">
-                <p>&copy; 2025 Kaun Banega Techpati. All rights reserved.</p>
+                <p>&copy; 2025 Kaun Banega Techpati. All rights reserved.
+                    IEEE XIM University Bhubaneswar.
+                </p>
+
             </div>
         </footer>
     );

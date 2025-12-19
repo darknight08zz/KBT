@@ -24,7 +24,7 @@ export default function Navbar() {
                 <div className="hidden md:flex items-center gap-8">
                     <Link href="/leaderboard" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Leaderboard</Link>
                     <a href="#about" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">About</a>
-                    <a href="#rules" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Rules</a>
+                    <Link href="/rules" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Rules</Link>
                     <a href="#prizes" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Prizes</a>
                 </div>
 
@@ -74,7 +74,7 @@ export default function Navbar() {
                             Leaderboard
                         </Link>
                         <a href="#about" onClick={() => setIsOpen(false)} className="text-lg font-medium text-gray-300 hover:text-white transition-colors py-2 border-b border-white/5">About</a>
-                        <a href="#rules" onClick={() => setIsOpen(false)} className="text-lg font-medium text-gray-300 hover:text-white transition-colors py-2 border-b border-white/5">Rules</a>
+                        <Link href="/rules" onClick={() => setIsOpen(false)} className="text-lg font-medium text-gray-300 hover:text-white transition-colors py-2 border-b border-white/5">Rules</Link>
                         <a href="#prizes" onClick={() => setIsOpen(false)} className="text-lg font-medium text-gray-300 hover:text-white transition-colors py-2 border-b border-white/5">Prizes</a>
                     </div>
 
