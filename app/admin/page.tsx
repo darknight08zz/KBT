@@ -250,7 +250,7 @@ export default function AdminPage() {
                                         required
                                     />
                                     {/* Image URL & Keywords */}
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <input
                                                 placeholder="Image URL (or upload below)"
@@ -303,7 +303,7 @@ export default function AdminPage() {
                                         />
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {(newQuestion.type === 'mcq' || newQuestion.type === 'multiselect') && newQuestion.options.map((opt, i) => (
                                             <input
                                                 key={i}
@@ -319,7 +319,7 @@ export default function AdminPage() {
                                             />
                                         ))}
                                     </div>
-                                    <div className="flex gap-4">
+                                    <div className="flex flex-col md:flex-row gap-4">
                                         <input
                                             placeholder="Correct Answer"
                                             className="flex-1 bg-black/50 border border-white/10 p-3 rounded-lg"
@@ -329,12 +329,12 @@ export default function AdminPage() {
                                         />
                                         <input
                                             placeholder="Topic (e.g. React)"
-                                            className="w-40 bg-black/50 border border-white/10 p-3 rounded-lg"
+                                            className="w-full md:w-40 bg-black/50 border border-white/10 p-3 rounded-lg"
                                             value={newQuestion.topic}
                                             onChange={e => setNewQuestion({ ...newQuestion, topic: e.target.value })}
                                         />
                                         <select
-                                            className="w-40 bg-black/50 border border-white/10 p-3 rounded-lg capitalize"
+                                            className="w-full md:w-40 bg-black/50 border border-white/10 p-3 rounded-lg capitalize"
                                             value={newQuestion.difficulty}
                                             onChange={e => setNewQuestion({ ...newQuestion, difficulty: e.target.value })}
                                         >
@@ -343,7 +343,7 @@ export default function AdminPage() {
                                             <option value="hard">Hard</option>
                                         </select>
                                         <select
-                                            className="w-40 bg-black/50 border border-white/10 p-3 rounded-lg capitalize"
+                                            className="w-full md:w-40 bg-black/50 border border-white/10 p-3 rounded-lg capitalize"
                                             value={newQuestion.type}
                                             onChange={e => setNewQuestion({ ...newQuestion, type: e.target.value })}
                                         >
@@ -353,7 +353,7 @@ export default function AdminPage() {
                                             <option value="long_answer">Long Answer</option>
                                         </select>
                                         <select
-                                            className="w-40 bg-black/50 border border-white/10 p-3 rounded-lg capitalize"
+                                            className="w-full md:w-40 bg-black/50 border border-white/10 p-3 rounded-lg capitalize"
                                             value={(newQuestion as any).year_category || '1st'}
                                             onChange={e => setNewQuestion({ ...newQuestion, year_category: e.target.value } as any)}
                                         >
@@ -373,7 +373,7 @@ export default function AdminPage() {
                                     {questions.map((q, idx) => (
                                         <div key={q.id} className="p-4 rounded-xl bg-white/5 border border-white/5 flex justify-between items-start">
                                             <div>
-                                                <div className="flex items-center gap-3 mb-2">
+                                                <div className="flex flex-wrap items-center gap-2 mb-2">
                                                     <span className="text-xs font-bold px-2 py-1 bg-white/10 rounded">{q.topic || 'General'}</span>
                                                     <span className="text-xs font-bold px-2 py-1 bg-blue-500/20 text-blue-300 rounded uppercase">{q.type || 'MCQ'}</span>
                                                     <span className={`text-xs font-bold px-2 py-1 rounded uppercase ${q.difficulty === 'hard' ? 'bg-red-500/20 text-red-300' :
@@ -383,9 +383,9 @@ export default function AdminPage() {
                                                         {q.difficulty || 'medium'}
                                                     </span>
                                                     <span className="text-xs font-bold px-2 py-1 bg-purple-500/20 text-purple-300 rounded uppercase">{(q as any).year_category || '1st'}</span>
-                                                    <h4 className="font-bold"><span className="text-primary mr-2">Question #{idx + 1}:</span> {q.text}</h4>
                                                     {q.image_url && <span className="text-xs text-blue-400 border border-blue-400 px-1 rounded">IMG</span>}
                                                 </div>
+                                                <h4 className="font-bold mb-2"><span className="text-primary mr-2">Question #{idx + 1}:</span> {q.text}</h4>
                                                 <div className="flex gap-2 text-sm text-gray-400 flex-wrap">
                                                     {q.options.map((opt, idx) => (
                                                         <span key={`${q.id}-opt-${idx}`} className={opt === q.answer ? 'text-green-400 font-bold' : ''}>{opt}</span>
@@ -411,7 +411,7 @@ export default function AdminPage() {
                             {/* EVENT TIMER CONTROL */}
                             <div className="p-6 rounded-xl border border-purple-500/30 bg-purple-500/5">
                                 <h3 className="text-purple-400 font-bold text-lg mb-4">Event Timer Control (6 Hours)</h3>
-                                <div className="flex items-center justify-between">
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                     <div>
                                         <p className="text-gray-400 mb-2">Timer Status:</p>
                                         {eventStatus.is_active && eventStatus.end_time ? (
@@ -420,11 +420,11 @@ export default function AdminPage() {
                                             <p className="text-gray-500 font-mono">No Active Timer</p>
                                         )}
                                     </div>
-                                    <div className="flex gap-4">
+                                    <div className="flex gap-4 w-full md:w-auto">
                                         <button
                                             onClick={() => handleEventAction('start')}
                                             disabled={eventStatus.is_active && !!eventStatus.end_time}
-                                            className="px-6 py-3 bg-purple-600 hover:bg-purple-500 rounded-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                                            className="w-full md:w-auto px-6 py-3 bg-purple-600 hover:bg-purple-500 rounded-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
                                             Start 6-Hour Timer
                                         </button>
@@ -435,7 +435,7 @@ export default function AdminPage() {
                             {/* MANUAL CONTROL */}
                             <div className="p-6 rounded-xl border border-blue-500/30 bg-blue-500/5">
                                 <h3 className="text-blue-400 font-bold text-lg mb-4">Manual Access Control</h3>
-                                <div className="flex items-center justify-between">
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                     <div>
                                         <p className="text-gray-400 mb-2">Current Status:
                                             <span className={`ml-2 font-bold ${eventStatus.is_active ? 'text-green-400' : 'text-red-400'}`}>
@@ -446,11 +446,11 @@ export default function AdminPage() {
                                             <p className="text-xs text-blue-300 mt-1">● Manually Enabled (Indefinite)</p>
                                         )}
                                     </div>
-                                    <div className="flex gap-4">
+                                    <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
                                         <button
                                             onClick={() => handleEventAction('enable')}
                                             disabled={eventStatus.is_active}
-                                            className={`px-6 py-3 rounded-lg font-bold transition-all ${eventStatus.is_active
+                                            className={`flex-1 sm:flex-none px-6 py-3 rounded-lg font-bold transition-all ${eventStatus.is_active
                                                 ? 'bg-gray-600/50 text-gray-400 cursor-not-allowed'
                                                 : 'bg-green-600 hover:bg-green-500 text-white'
                                                 }`}
@@ -460,7 +460,7 @@ export default function AdminPage() {
                                         <button
                                             onClick={() => handleEventAction('disable')}
                                             disabled={!eventStatus.is_active}
-                                            className={`px-6 py-3 rounded-lg font-bold transition-all ${!eventStatus.is_active
+                                            className={`flex-1 sm:flex-none px-6 py-3 rounded-lg font-bold transition-all ${!eventStatus.is_active
                                                 ? 'bg-gray-600/50 text-gray-400 cursor-not-allowed'
                                                 : 'bg-red-600 hover:bg-red-500 text-white'
                                                 }`}
