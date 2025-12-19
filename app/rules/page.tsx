@@ -49,7 +49,10 @@ export default function RulesPage() {
                                 <h3 className="font-bold text-lg text-white mb-4">Difficulty Breakdown</h3>
                                 <ul className="space-y-3">
                                     <li className="flex justify-between items-center border-b border-white/5 pb-2">
-                                        <span className="text-green-400 font-bold">Easy</span>
+                                        <div className="flex flex-col">
+                                            <span className="text-green-400 font-bold">Easy</span>
+                                            <span className="text-xs text-green-400/70">15 Seconds / Q</span>
+                                        </div>
                                         <span className="text-gray-400">10 Questions</span>
                                         <div className="text-right">
                                             <span className="text-green-400 block">+1 Correct</span>
@@ -57,7 +60,10 @@ export default function RulesPage() {
                                         </div>
                                     </li>
                                     <li className="flex justify-between items-center border-b border-white/5 pb-2">
-                                        <span className="text-yellow-400 font-bold">Medium</span>
+                                        <div className="flex flex-col">
+                                            <span className="text-yellow-400 font-bold">Medium</span>
+                                            <span className="text-xs text-yellow-400/70">60 Seconds / Q</span>
+                                        </div>
                                         <span className="text-gray-400">5 Questions</span>
                                         <div className="text-right">
                                             <span className="text-green-400 block">+1 Correct</span>
@@ -65,7 +71,10 @@ export default function RulesPage() {
                                         </div>
                                     </li>
                                     <li className="flex justify-between items-center pb-2">
-                                        <span className="text-red-400 font-bold">Hard</span>
+                                        <div className="flex flex-col">
+                                            <span className="text-red-400 font-bold">Hard</span>
+                                            <span className="text-xs text-red-400/70">3 Minutes / Q</span>
+                                        </div>
                                         <span className="text-gray-400">5 Questions</span>
                                         <div className="text-right">
                                             <span className="text-green-400 block">+1 Correct</span>
@@ -75,8 +84,8 @@ export default function RulesPage() {
                                 </ul>
                             </div>
 
-                            <p className="text-sm text-gray-400 italic text-center">
-                                *Different question sets for 1st, 2nd, and 3rd year participants.
+                            <p className="text-xl text-white font-bold text-center mt-6 p-4 bg-white/5 rounded-xl border border-white/10">
+                                Different question sets for 1st, 2nd, and 3rd year participants.
                             </p>
                         </div>
                     </section>
