@@ -6,6 +6,7 @@ import Footer from '@/app/components/Footer';
 export default function RulesPage() {
     return (
         <div className="min-h-screen app-background text-white font-sans selection:bg-primary/30">
+
             <Navbar />
 
             <main className="pt-24 pb-16 px-6 max-w-4xl mx-auto">
