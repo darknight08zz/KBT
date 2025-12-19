@@ -126,7 +126,7 @@ export default function AdminPage() {
     };
 
     return (
-        <div className="min-h-screen bg-black text-white font-sans p-6">
+        <div className="min-h-screen app-background text-white font-sans p-6">
             <Modal
                 isOpen={isResetModalOpen}
                 title="Reset Leaderboard?"

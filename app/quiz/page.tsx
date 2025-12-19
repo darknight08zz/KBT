@@ -219,7 +219,7 @@ function QuizContent() {
 
     return (
         <AntiCheatProvider onCheat={handleCheat}>
-            <div className="min-h-screen bg-black text-white font-sans flex flex-col">
+            <div className="min-h-screen app-background text-white font-sans flex flex-col">
                 <Modal
                     isOpen={isExitModalOpen}
                     title="Quit Quiz?"
@@ -337,7 +337,7 @@ function QuizContent() {
 
 export default function QuizPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen bg-black text-white flex items-center justify-center font-bold animate-pulse">Loading Arena...</div>}>
+        <Suspense fallback={<div className="min-h-screen app-background text-white flex items-center justify-center font-bold animate-pulse">Loading Arena...</div>}>
             <QuizContent />
         </Suspense>
     );

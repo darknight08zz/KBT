@@ -60,7 +60,7 @@ export default function DashboardPage() {
     };
 
     return (
-        <div className="min-h-screen bg-black/95 text-white p-6 relative overflow-hidden">
+        <div className="min-h-screen app-background text-white p-6 relative overflow-hidden">
             {/* Background Ambience */}
             <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[150px] -z-10 animate-pulse"></div>
 

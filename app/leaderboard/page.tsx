@@ -46,7 +46,7 @@ export default function LeaderboardPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen selection:bg-primary/30 font-sans">
+            <div className="min-h-screen app-background selection:bg-primary/30 font-sans">
                 <Navbar />
                 <main className="pt-32 pb-16 px-6 max-w-7xl mx-auto flex justify-center items-center min-h-[60vh]">
                     <div className="text-white text-xl animate-pulse">Loading Leaderboard...</div>
@@ -58,7 +58,7 @@ export default function LeaderboardPage() {
 
     if (error) {
         return (
-            <div className="min-h-screen selection:bg-primary/30 font-sans">
+            <div className="min-h-screen app-background selection:bg-primary/30 font-sans">
                 <Navbar />
                 <main className="pt-32 pb-16 px-6 max-w-7xl mx-auto flex justify-center items-center min-h-[60vh]">
                     <div className="text-red-400 text-xl">{error}</div>
@@ -76,7 +76,7 @@ export default function LeaderboardPage() {
     ];
 
     return (
-        <div className="min-h-screen selection:bg-primary/30 font-sans">
+        <div className="min-h-screen app-background selection:bg-primary/30 font-sans">
             <Navbar />
 
             <main className="pt-20 md:pt-24 pb-16 px-6 max-w-7xl mx-auto">

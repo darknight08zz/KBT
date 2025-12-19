@@ -4,7 +4,7 @@ import { Inter } from 'next/font/google';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-  title: 'Kaun Banega Texhpati',
+  title: 'Kaun Banega Techpati',
   description: 'The Ultimate Technical Quiz Platform',
 };
 

@@ -65,4 +65,23 @@ body {
   .btn-primary {
     @apply bg-gradient-to-br from-primary to-primary-glow text-white font-bold py-3 px-6 rounded-full transition-transform hover:-translate-y-0.5 shadow-lg shadow-primary/20;
   }
+
+  .app-background {
+    background-image: linear-gradient(rgba(15, 12, 41, 0.90), rgba(15, 12, 41, 0.90)), url('/background.jpeg');
+    /* Mobile: Fits width, scrolls repeats */
+    background-size: 100% auto;
+    background-position: top center;
+    background-attachment: scroll;
+    background-repeat: repeat-y;
+  }
+
+  @media (min-width: 768px) {
+    .app-background {
+      /* Desktop: Covers screen, fixed parallax */
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+    }
+  }
 }
