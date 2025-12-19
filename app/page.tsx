@@ -27,6 +27,11 @@ export default function LandingPage() {
             Real-time leaderboards, anti-cheat proctoring, and expert-level questions at your fingertips.
           </p>
 
+          {/* Pre-Qualifying Label */}
+          <h3 className="text-xl md:text-2xl font-bold text-accent mb-4 tracking-wide uppercase drop-shadow-sm">
+            Pre-Qualifying Round
+          </h3>
+
           {/* Event Details */}
           <div className="bg-black/40 backdrop-blur-sm border border-primary/30 p-6 rounded-xl mb-10 max-w-lg w-full">
             <h2 className="text-2xl font-bold text-primary mb-4">Event Details</h2>
