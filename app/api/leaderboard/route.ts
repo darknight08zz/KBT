@@ -38,17 +38,16 @@ export async function POST(request: NextRequest) {
             const checkRes = await client.query('SELECT * FROM leaderboard WHERE username = $1', [username]);
 
             if (checkRes.rows.length > 0) {
-                // Update existing entry
-                await client.query(
-                    'UPDATE leaderboard SET score = $1, time_taken = $2, created_at = NOW() WHERE username = $3',
-                    [score, time_taken, username]
-                );
+                // User already exists.
+                // Rule: "First time score is final". Do not update.
+                return NextResponse.json({ success: true, message: 'Score already recorded' });
             } else {
                 // Insert new entry
                 await client.query(
                     'INSERT INTO leaderboard (username, time_taken, score) VALUES ($1, $2, $3)',
                     [username, time_taken, score]
                 );
+                return NextResponse.json({ success: true });
             }
             return NextResponse.json({ success: true });
         } finally {
