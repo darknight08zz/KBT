@@ -65,8 +65,6 @@ function QuizContent() {
                 const eventRes = await fetch('/api/admin/event');
                 const eventData = await eventRes.json();
 
-                console.log("[DEBUG] Role:", role, "Event Active:", eventData.is_active);
-
                 // Admin Bypass: If role is admin, skip active check
                 if (role !== 'admin' && (!eventData.is_active || (eventData.end_time && new Date(eventData.end_time).getTime() < Date.now()))) {
                     alert("The event is not currently active.");
@@ -85,8 +83,7 @@ function QuizContent() {
                 const statusData = await statusRes.json();
 
                 if (statusData.hasAttempted) {
-                    alert("You have already attempted the quiz.");
-                    navigate('/result');
+                    navigate('/leaderboard');
                     return;
                 }
 
