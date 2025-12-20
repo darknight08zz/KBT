@@ -50,6 +50,8 @@ function QuizContent() {
 
     useEffect(() => {
         const storedUser = sessionStorage.getItem('kbt-username');
+        const role = sessionStorage.getItem('kbt-role');
+
         if (!storedUser) {
             navigate('/login');
             return;
@@ -63,7 +65,8 @@ function QuizContent() {
                 const eventRes = await fetch('/api/admin/event');
                 const eventData = await eventRes.json();
 
-                if (!eventData.is_active || (eventData.end_time && new Date(eventData.end_time).getTime() < Date.now())) {
+                // Admin Bypass: If role is admin, skip active check
+                if (role !== 'admin' && (!eventData.is_active || (eventData.end_time && new Date(eventData.end_time).getTime() < Date.now()))) {
                     alert("The event is not currently active.");
                     navigate('/dashboard');
                     return;
@@ -171,37 +174,23 @@ function QuizContent() {
             if (q.type === 'multiselect') {
                 // Array comparison
                 if (Array.isArray(userAns)) {
-                    // Simple strict match for now: all options must be present (assuming sorted or strictly equal contents)
-                    // Realistically we need set comparison. 
-                    // Lets assume q.answer is a stringified array or we need to parse it if it comes from DB as text.
-                    // Wait, DB schema `answer` is TEXT. For multiselect admin saves what?
-                    // Admin UI saves single string 'answer'. 
-                    // This is a flaw in my plan/current app. 
-                    // For multiselect, valid answer should be comparing against 'answer' field which might be JSON string?
-                    // OR we check if userAns contains the answer string?
-                    // Let's stick to existing logic for MCQ essentially, but for Multiselect we might just award points if *some* correct logic met?
-                    // Since Admin UI 'answer' is a simple input, let's assume strict string match for now or just skip complex grading for multiselect in this iteration.
-                    // I will mark it correct if it matches q.answer string.
-                    if (JSON.stringify(userAns.sort()) === q.answer) score += 5;
+
+                    if (JSON.stringify(userAns.sort()) === q.answer) score += 1;
                 }
             } else if (q.type === 'short_answer' || q.type === 'long_answer') {
                 const ansStr = typeof userAns === 'string' ? userAns.trim() : '';
 
                 // Smart Matching (Keywords)
                 if (q.keywords && q.keywords.length > 0) {
-                    // Check if ANY of the keywords are present (OR logic) or ALL? 
-                    // Usually "keywords" implies key points needed. Let's say if it contains *significant* overlap.
-                    // Simple logic: if comma separated keywords, check if user answer contains AT LEAST ONE or ALL?
-                    // "Block that is important that should be match" -> suggest ALL keywords implementation or substantial matching.
-                    // Improved Logic: Check if ALL provided keywords are in the answer (insensitive).
+
                     const keywordsArr = Array.isArray(q.keywords) ? q.keywords : (q.keywords as string).split(',').map(k => k.trim());
                     const matchesAll = keywordsArr.every(k => ansStr.toLowerCase().includes(k.toLowerCase()));
 
-                    if (matchesAll) score += 5;
+                    if (matchesAll) score += 1;
                 }
                 // Fallback to exact match (relaxed)
                 else if (ansStr.toLowerCase() === q.answer.trim().toLowerCase()) {
-                    score += 5;
+                    score += 1;
                 }
 
                 // Long answer usually needs manual review, but if keywords match we give points auto.
@@ -209,12 +198,13 @@ function QuizContent() {
             } else {
                 // MCQ
                 if (userAns === q.answer) {
-                    score += 5;
+                    score += 1;
                 } else {
-                    // Negative marking logic (simplified)
-                    switch (q.difficulty) {
-                        case 'hard': score -= 1; break;
+                    // Negative marking logic
+                    switch (q.difficulty?.toLowerCase()) {
+                        case 'easy': score -= 1; break;
                         case 'medium': score -= 0.5; break;
+                        case 'hard': break; // No penalty for hard
                         default: break;
                     }
                 }
@@ -235,7 +225,7 @@ function QuizContent() {
             });
 
             if (res.ok) {
-                navigate('/result');
+                navigate(`/result?total=${questions.length}`);
             } else {
                 alert('Failed to submit score. Please try again.');
                 setIsSubmitting(false);
@@ -251,7 +241,7 @@ function QuizContent() {
         if (isSubmitting) return; // Prevent double submission
         setIsSubmitting(true);
 
-        // Immediately submit disqualified score
+
         try {
             await fetch('/api/leaderboard', {
                 method: 'POST',

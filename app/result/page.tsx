@@ -12,7 +12,7 @@ function ResultContent() {
     // State for user results
     const [score, setScore] = useState(parseInt(searchParams.get('score') || '0'));
     const [timeTaken, setTimeTaken] = useState(parseInt(searchParams.get('time') || '0'));
-    const total = 10;
+    const [total, setTotal] = useState(parseInt(searchParams.get('total') || '20'));
 
     const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
