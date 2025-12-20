@@ -26,6 +26,7 @@ export default function AdminPage() {
         difficulty: 'medium',
         type: 'mcq'
     });
+    const [editingQuestionId, setEditingQuestionId] = useState<number | null>(null);
 
     // Event State
     const [eventStatus, setEventStatus] = useState<{ is_active: boolean; end_time: string | null }>({ is_active: false, end_time: null });
@@ -97,11 +98,22 @@ export default function AdminPage() {
 
     const handleAddQuestion = async (e: React.FormEvent) => {
         e.preventDefault();
-        await fetch('/api/admin/questions', {
-            method: 'POST',
+
+        let url = '/api/admin/questions';
+        let method = 'POST';
+        let body: any = newQuestion;
+
+        if (editingQuestionId) {
+            method = 'PUT';
+            body = { ...newQuestion, id: editingQuestionId };
+        }
+
+        await fetch(url, {
+            method,
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(newQuestion)
+            body: JSON.stringify(body)
         });
+
         setNewQuestion({
             text: '',
             options: ['', '', '', ''],
@@ -110,7 +122,36 @@ export default function AdminPage() {
             difficulty: 'medium',
             type: 'mcq'
         });
+        setEditingQuestionId(null);
         fetchData();
+    };
+
+    const handleEditClick = (q: QuestionWithId) => {
+        setEditingQuestionId(q.id);
+        const options = Array.isArray(q.options) && q.options.length > 0 ? q.options : ['', '', '', ''];
+        setNewQuestion({
+            ...q, // Spread first to allow overrides
+            text: q.text,
+            options: options,
+            answer: typeof q.answer === 'string' ? q.answer : '',
+            topic: q.topic || '',
+            difficulty: q.difficulty || 'medium',
+            type: q.type || 'mcq'
+        } as any);
+        // Scroll to form
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const handleCancelEdit = () => {
+        setEditingQuestionId(null);
+        setNewQuestion({
+            text: '',
+            options: ['', '', '', ''],
+            answer: '',
+            topic: '',
+            difficulty: 'medium',
+            type: 'mcq'
+        });
     };
 
     const handleDeleteQuestion = async (id: number) => {
@@ -239,7 +280,9 @@ export default function AdminPage() {
 
                             {/* Add Form */}
                             <div className="bg-white/5 p-6 rounded-xl border border-white/5">
-                                <h3 className="font-bold text-lg mb-4 text-accent">Add New Question</h3>
+                                <h3 className="font-bold text-lg mb-4 text-accent">
+                                    {editingQuestionId ? 'Edit Question' : 'Add New Question'}
+                                </h3>
                                 <form onSubmit={handleAddQuestion} className="space-y-4">
                                     <input
                                         placeholder="Question Text"
@@ -361,7 +404,20 @@ export default function AdminPage() {
                                             <option value="3rd">3rd Year</option>
                                         </select>
                                     </div>
-                                    <button className="w-full btn-primary">Add Question</button>
+                                    <div className="flex gap-4">
+                                        <button className="w-full btn-primary flex-1">
+                                            {editingQuestionId ? 'Update Question' : 'Add Question'}
+                                        </button>
+                                        {editingQuestionId && (
+                                            <button
+                                                type="button"
+                                                onClick={handleCancelEdit}
+                                                className="px-6 py-3 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg font-bold transition-colors"
+                                            >
+                                                Cancel
+                                            </button>
+                                        )}
+                                    </div>
                                 </form>
                             </div>
 
@@ -392,9 +448,14 @@ export default function AdminPage() {
                                                     {q.keywords && <span className="text-purple-400 ml-2">Keywords: {Array.isArray(q.keywords) ? q.keywords.join(', ') : q.keywords}</span>}
                                                 </div>
                                             </div>
-                                            <button onClick={() => handleDeleteQuestion(q.id)} className="text-red-400 hover:bg-red-500/10 p-2 rounded">
-                                                🗑
-                                            </button>
+                                            <div className="flex flex-col gap-2">
+                                                <button onClick={() => handleEditClick(q)} className="text-blue-400 hover:bg-blue-500/10 p-2 rounded" title="Edit">
+                                                    ✏️
+                                                </button>
+                                                <button onClick={() => handleDeleteQuestion(q.id)} className="text-red-400 hover:bg-red-500/10 p-2 rounded" title="Delete">
+                                                    🗑
+                                                </button>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>

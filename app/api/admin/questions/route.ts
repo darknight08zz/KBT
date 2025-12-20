@@ -45,6 +45,28 @@ export async function POST(request: NextRequest) {
     }
 }
 
+export async function PUT(request: NextRequest) {
+    try {
+        const body = await request.json();
+        const { id, text, options, answer, topic, difficulty, type, keywords, image_url, year_category } = body;
+
+        if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
+
+        const client = await pool.connect();
+        const keywordsStr = Array.isArray(keywords) ? keywords.join(',') : (keywords || '');
+
+        await client.query(
+            'UPDATE questions SET text=$1, options=$2, answer=$3, topic=$4, difficulty=$5, type=$6, keywords=$7, image_url=$8, year_category=$9 WHERE id=$10',
+            [text, options, answer, topic, difficulty || 'medium', type || 'mcq', keywordsStr, image_url, year_category || '1st', id]
+        );
+        client.release();
+
+        return NextResponse.json({ success: true });
+    } catch (err: any) {
+        return NextResponse.json({ error: err.message }, { status: 500 });
+    }
+}
+
 export async function DELETE(request: NextRequest) {
     try {
         // Delete requires ID from query params
