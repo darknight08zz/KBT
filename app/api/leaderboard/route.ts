@@ -34,10 +34,22 @@ export async function POST(request: NextRequest) {
 
         const client = await pool.connect();
         try {
-            await client.query(
-                'INSERT INTO leaderboard (username, time_taken, score) VALUES ($1, $2, $3)',
-                [username, time_taken, score]
-            );
+            // Check if user exists
+            const checkRes = await client.query('SELECT * FROM leaderboard WHERE username = $1', [username]);
+
+            if (checkRes.rows.length > 0) {
+                // Update existing entry
+                await client.query(
+                    'UPDATE leaderboard SET score = $1, time_taken = $2, created_at = NOW() WHERE username = $3',
+                    [score, time_taken, username]
+                );
+            } else {
+                // Insert new entry
+                await client.query(
+                    'INSERT INTO leaderboard (username, time_taken, score) VALUES ($1, $2, $3)',
+                    [username, time_taken, score]
+                );
+            }
             return NextResponse.json({ success: true });
         } finally {
             client.release();
