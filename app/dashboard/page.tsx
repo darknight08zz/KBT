@@ -102,9 +102,30 @@ export default function DashboardPage() {
                             {username} <span className="text-primary text-lg align-top ml-2 px-2 py-0.5 border border-primary/50 rounded-full bg-primary/10">{role}</span>
                         </h1>
                     </div>
-                    <button onClick={handleLogout} className="text-sm font-bold text-gray-500 hover:text-white transition-colors">
-                        LOGOUT
-                    </button>
+                    <div className="flex items-center gap-8">
+                        <button onClick={handleLogout} className="text-sm font-bold text-gray-500 hover:text-white transition-colors">
+                            LOGOUT
+                        </button>
+                        <button
+                            onClick={async () => {
+                                if (!confirm("Are you sure you want to PERMANENTLY delete your account? This cannot be undone.")) return;
+                                const res = await fetch('/api/user/delete', {
+                                    method: 'DELETE',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ username })
+                                });
+                                if (res.ok) {
+                                    alert("Account deleted.");
+                                    handleLogout();
+                                } else {
+                                    alert("Failed to delete account.");
+                                }
+                            }}
+                            className="text-sm font-bold text-red-500 hover:text-red-400 transition-colors"
+                        >
+                            DELETE ACCOUNT
+                        </button>
+                    </div>
                 </div>
 
                 {/* Content */}

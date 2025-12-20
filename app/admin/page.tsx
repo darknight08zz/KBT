@@ -197,34 +197,33 @@ export default function AdminPage() {
                                                 </td>
                                                 <td className="p-3 text-gray-500">{new Date(u.created_at || '').toLocaleDateString()}</td>
                                                 <td className="p-3 flex gap-2">
-                                                    {u.role !== 'admin' && (
-                                                        <>
-                                                            <button
-                                                                onClick={async () => {
-                                                                    if (!confirm(`Are you sure you want to ${u.is_blocked ? 'unblock' : 'block'} ${u.username}?`)) return;
-                                                                    await fetch('/api/admin/users', {
-                                                                        method: 'PATCH',
-                                                                        headers: { 'Content-Type': 'application/json' },
-                                                                        body: JSON.stringify({ id: u.id, is_blocked: !u.is_blocked })
-                                                                    });
-                                                                    fetchData();
-                                                                }}
-                                                                className={`px-3 py-1 rounded text-xs font-bold ${u.is_blocked ? 'bg-green-600 hover:bg-green-500' : 'bg-yellow-600 hover:bg-yellow-500'}`}
-                                                            >
-                                                                {u.is_blocked ? 'Unblock' : 'Block'}
-                                                            </button>
-                                                            <button
-                                                                onClick={async () => {
-                                                                    if (!confirm(`Permanently delete ${u.username}?`)) return;
-                                                                    await fetch(`/api/admin/users?id=${u.id}`, { method: 'DELETE' });
-                                                                    fetchData();
-                                                                }}
-                                                                className="px-3 py-1 bg-red-600 hover:bg-red-500 rounded text-xs font-bold"
-                                                            >
-                                                                Remove
-                                                            </button>
-                                                        </>
-                                                    )}
+                                                    {/* Allow removing anyone */}
+                                                    <>
+                                                        <button
+                                                            onClick={async () => {
+                                                                if (!confirm(`Are you sure you want to ${u.is_blocked ? 'unblock' : 'block'} ${u.username}?`)) return;
+                                                                await fetch('/api/admin/users', {
+                                                                    method: 'PATCH',
+                                                                    headers: { 'Content-Type': 'application/json' },
+                                                                    body: JSON.stringify({ id: u.id, is_blocked: !u.is_blocked })
+                                                                });
+                                                                fetchData();
+                                                            }}
+                                                            className={`px-3 py-1 rounded text-xs font-bold ${u.is_blocked ? 'bg-green-600 hover:bg-green-500' : 'bg-yellow-600 hover:bg-yellow-500'}`}
+                                                        >
+                                                            {u.is_blocked ? 'Unblock' : 'Block'}
+                                                        </button>
+                                                        <button
+                                                            onClick={async () => {
+                                                                if (!confirm(`Permanently delete ${u.username}?`)) return;
+                                                                await fetch(`/api/admin/users?id=${u.id}`, { method: 'DELETE' });
+                                                                fetchData();
+                                                            }}
+                                                            className="px-3 py-1 bg-red-600 hover:bg-red-500 rounded text-xs font-bold"
+                                                        >
+                                                            Remove
+                                                        </button>
+                                                    </>
                                                 </td>
                                             </tr>
                                         ))}
