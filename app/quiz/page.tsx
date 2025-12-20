@@ -83,7 +83,7 @@ function QuizContent() {
                 const statusData = await statusRes.json();
 
                 if (statusData.hasAttempted) {
-                    navigate('/leaderboard');
+                    navigate('/dashboard');
                     return;
                 }
 
