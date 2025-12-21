@@ -36,6 +36,7 @@ export async function GET() {
                 ALTER TABLE questions ADD COLUMN IF NOT EXISTS image_url TEXT;
                 ALTER TABLE questions ADD COLUMN IF NOT EXISTS year_category VARCHAR(20) DEFAULT '1st';
                 ALTER TABLE leaderboard ADD COLUMN IF NOT EXISTS year VARCHAR(10) DEFAULT '1st';
+                ALTER TABLE leaderboard ALTER COLUMN score TYPE DECIMAL(10, 2);
 
                 CREATE TABLE IF NOT EXISTS event_settings (
                     id SERIAL PRIMARY KEY,
