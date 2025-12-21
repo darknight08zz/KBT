@@ -229,12 +229,13 @@ function QuizContent() {
             if (res.ok) {
                 navigate(`/result?total=${questions.length}`);
             } else {
-                alert('Failed to submit score. Please try again.');
+                const errorData = await res.json();
+                alert(`Failed to submit: ${errorData.message || errorData.error || 'Unknown error'}`);
                 setIsSubmitting(false);
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
-            alert('Error submitting score');
+            alert(`Error submitting score: ${err.message}`);
             setIsSubmitting(false);
         }
     };
