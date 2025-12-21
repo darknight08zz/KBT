@@ -348,10 +348,10 @@ export default function AdminPage() {
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {(newQuestion.type === 'mcq' || newQuestion.type === 'multiselect') && newQuestion.options.map((opt, i) => (
-                                            <input
+                                            <textarea
                                                 key={i}
                                                 placeholder={`Option ${i + 1}`}
-                                                className="bg-black/50 border border-white/10 p-3 rounded-lg"
+                                                className="bg-black/50 border border-white/10 p-3 rounded-lg resize-y min-h-[60px]"
                                                 value={opt}
                                                 onChange={e => {
                                                     const newOpts = [...newQuestion.options];
@@ -359,6 +359,7 @@ export default function AdminPage() {
                                                     setNewQuestion({ ...newQuestion, options: newOpts });
                                                 }}
                                                 required
+                                                rows={2}
                                             />
                                         ))}
                                     </div>
@@ -444,7 +445,7 @@ export default function AdminPage() {
                                                 <h4 className="font-bold mb-2 whitespace-pre-wrap"><span className="text-primary mr-2">Question #{idx + 1}:</span> {q.text}</h4>
                                                 <div className="flex gap-2 text-sm text-gray-400 flex-wrap">
                                                     {q.options.map((opt, idx) => (
-                                                        <span key={`${q.id}-opt-${idx}`} className={opt === q.answer ? 'text-green-400 font-bold' : ''}>{opt}</span>
+                                                        <span key={`${q.id}-opt-${idx}`} className={`${opt === q.answer ? 'text-green-400 font-bold' : ''} whitespace-pre-wrap`}>{opt}</span>
                                                     ))}
                                                     {q.keywords && <span className="text-purple-400 ml-2">Keywords: {Array.isArray(q.keywords) ? q.keywords.join(', ') : q.keywords}</span>}
                                                 </div>

@@ -57,7 +57,7 @@ export default function QuestionPanel({ question, currentQuestionIndex, totalQue
                                 }`}>
                                 {String.fromCharCode(65 + idx)}
                             </div>
-                            {option}
+                            <div className="whitespace-pre-wrap text-left">{option}</div>
                         </div>
                     </button>
                 ))}
@@ -78,7 +78,7 @@ export default function QuestionPanel({ question, currentQuestionIndex, totalQue
                                     }`}>
                                     {isSelected && '✓'}
                                 </div>
-                                {option}
+                                <div className="whitespace-pre-wrap text-left">{option}</div>
                             </div>
                         </button>
                     );
