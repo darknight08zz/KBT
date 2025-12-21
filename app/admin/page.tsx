@@ -364,12 +364,13 @@ export default function AdminPage() {
                                         ))}
                                     </div>
                                     <div className="flex flex-col md:flex-row gap-4">
-                                        <input
+                                        <textarea
                                             placeholder="Correct Answer"
-                                            className="flex-1 bg-black/50 border border-white/10 p-3 rounded-lg"
+                                            className="flex-1 bg-black/50 border border-white/10 p-3 rounded-lg resize-y min-h-[60px]"
                                             value={newQuestion.answer}
                                             onChange={e => setNewQuestion({ ...newQuestion, answer: e.target.value })}
                                             required
+                                            rows={2}
                                         />
                                         <input
                                             placeholder="Topic (e.g. React)"
