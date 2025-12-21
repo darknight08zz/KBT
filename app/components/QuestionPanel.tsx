@@ -32,7 +32,7 @@ export default function QuestionPanel({ question, currentQuestionIndex, totalQue
                 <span>Topic: {question.topic || 'General'}</span>
             </div>
 
-            <h2 className="text-3xl font-bold leading-tight text-white">
+            <h2 className="text-3xl font-bold leading-tight text-white whitespace-pre-wrap">
                 {question.text}
             </h2>
 

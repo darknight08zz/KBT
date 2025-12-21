@@ -284,12 +284,13 @@ export default function AdminPage() {
                                     {editingQuestionId ? 'Edit Question' : 'Add New Question'}
                                 </h3>
                                 <form onSubmit={handleAddQuestion} className="space-y-4">
-                                    <input
+                                    <textarea
                                         placeholder="Question Text"
-                                        className="w-full bg-black/50 border border-white/10 p-3 rounded-lg"
+                                        className="w-full bg-black/50 border border-white/10 p-3 rounded-lg resize-y min-h-[100px]"
                                         value={newQuestion.text}
                                         onChange={e => setNewQuestion({ ...newQuestion, text: e.target.value })}
                                         required
+                                        rows={4}
                                     />
                                     {/* Image URL & Keywords */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -440,7 +441,7 @@ export default function AdminPage() {
                                                     <span className="text-xs font-bold px-2 py-1 bg-purple-500/20 text-purple-300 rounded uppercase">{(q as any).year_category || '1st'}</span>
                                                     {q.image_url && <span className="text-xs text-blue-400 border border-blue-400 px-1 rounded">IMG</span>}
                                                 </div>
-                                                <h4 className="font-bold mb-2"><span className="text-primary mr-2">Question #{idx + 1}:</span> {q.text}</h4>
+                                                <h4 className="font-bold mb-2 whitespace-pre-wrap"><span className="text-primary mr-2">Question #{idx + 1}:</span> {q.text}</h4>
                                                 <div className="flex gap-2 text-sm text-gray-400 flex-wrap">
                                                     {q.options.map((opt, idx) => (
                                                         <span key={`${q.id}-opt-${idx}`} className={opt === q.answer ? 'text-green-400 font-bold' : ''}>{opt}</span>
