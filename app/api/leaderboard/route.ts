@@ -5,6 +5,7 @@ interface LeaderboardEntry {
     username: string;
     time_taken: number;
     score: number;
+    year?: string;
 }
 
 export async function GET() {
@@ -26,7 +27,8 @@ export async function GET() {
 export async function POST(request: NextRequest) {
     try {
         const body: LeaderboardEntry = await request.json();
-        const { username, time_taken, score } = body;
+        const { username, time_taken, score, year } = body;
+        const yearVal = year || '1st';
 
         if (!username || time_taken === undefined || score === undefined) {
             return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
@@ -34,7 +36,7 @@ export async function POST(request: NextRequest) {
 
         const client = await pool.connect();
         try {
-            // Check if user exists
+            // Check if user exists (Global check, ignoring year)
             const checkRes = await client.query('SELECT * FROM leaderboard WHERE username = $1', [username]);
 
             if (checkRes.rows.length > 0) {
@@ -44,16 +46,20 @@ export async function POST(request: NextRequest) {
             } else {
                 // Insert new entry
                 await client.query(
-                    'INSERT INTO leaderboard (username, time_taken, score) VALUES ($1, $2, $3)',
-                    [username, time_taken, score]
+                    'INSERT INTO leaderboard (username, time_taken, score, year) VALUES ($1, $2, $3, $4)',
+                    [username, time_taken, score, yearVal]
                 );
                 return NextResponse.json({ success: true });
             }
-            return NextResponse.json({ success: true });
         } finally {
             client.release();
         }
-    } catch (err) {
-        return NextResponse.json({ error: 'Database error' }, { status: 500 });
+    } catch (err: any) {
+        console.error('Leaderboard Submission Error:', err);
+        // Handle race condition unique violation
+        if (err.code === '23505') {
+            return NextResponse.json({ success: true, message: 'Score already recorded' });
+        }
+        return NextResponse.json({ error: err.message || 'Database error' }, { status: 500 });
     }
 }

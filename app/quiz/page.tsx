@@ -210,6 +210,8 @@ function QuizContent() {
             }
         });
 
+
+
         const timeTaken = Math.floor((Date.now() - startTime) / 1000);
 
         try {
@@ -219,7 +221,8 @@ function QuizContent() {
                 body: JSON.stringify({
                     username,
                     score,
-                    time_taken: timeTaken
+                    time_taken: timeTaken,
+                    year: year || '1st'
                 })
             });
 

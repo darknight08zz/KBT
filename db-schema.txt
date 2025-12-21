@@ -1,0 +1,96 @@
+--- LEADERBOARD TABLE ---
+[
+  {
+    "column_name": "id",
+    "data_type": "integer",
+    "is_nullable": "NO"
+  },
+  {
+    "column_name": "score",
+    "data_type": "integer",
+    "is_nullable": "NO"
+  },
+  {
+    "column_name": "time_taken",
+    "data_type": "integer",
+    "is_nullable": "NO"
+  },
+  {
+    "column_name": "created_at",
+    "data_type": "timestamp without time zone",
+    "is_nullable": "YES"
+  },
+  {
+    "column_name": "username",
+    "data_type": "character varying",
+    "is_nullable": "NO"
+  }
+]
+[
+  {
+    "conname": "leaderboard_pkey",
+    "contype": "p",
+    "pg_get_constraintdef": "PRIMARY KEY (id)"
+  },
+  {
+    "conname": "leaderboard_username_fkey",
+    "contype": "f",
+    "pg_get_constraintdef": "FOREIGN KEY (username) REFERENCES users(username)"
+  }
+]
+
+--- USERS TABLE ---
+[
+  {
+    "column_name": "id",
+    "data_type": "integer",
+    "is_nullable": "NO"
+  },
+  {
+    "column_name": "created_at",
+    "data_type": "timestamp without time zone",
+    "is_nullable": "YES"
+  },
+  {
+    "column_name": "is_blocked",
+    "data_type": "boolean",
+    "is_nullable": "YES"
+  },
+  {
+    "column_name": "role",
+    "data_type": "character varying",
+    "is_nullable": "NO"
+  },
+  {
+    "column_name": "email",
+    "data_type": "character varying",
+    "is_nullable": "YES"
+  },
+  {
+    "column_name": "university",
+    "data_type": "character varying",
+    "is_nullable": "YES"
+  },
+  {
+    "column_name": "username",
+    "data_type": "character varying",
+    "is_nullable": "NO"
+  },
+  {
+    "column_name": "password",
+    "data_type": "character varying",
+    "is_nullable": "NO"
+  }
+]
+[
+  {
+    "conname": "users_pkey",
+    "contype": "p",
+    "pg_get_constraintdef": "PRIMARY KEY (id)"
+  },
+  {
+    "conname": "users_username_key",
+    "contype": "u",
+    "pg_get_constraintdef": "UNIQUE (username)"
+  }
+]
