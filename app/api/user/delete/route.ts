@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from 'next/server';
-import pool from '@/lib/db';
+import supabase from '@/lib/supabase';
 
 export async function DELETE(request: NextRequest) {
     try {
@@ -10,15 +10,19 @@ export async function DELETE(request: NextRequest) {
             return NextResponse.json({ error: 'Username required' }, { status: 400 });
         }
 
-        const client = await pool.connect();
-        try {
-            await client.query('DELETE FROM users WHERE username = $1', [username]);
-            return NextResponse.json({ success: true, message: 'Account deleted successfully' });
-        } finally {
-            client.release();
+        const { error } = await supabase
+            .from('users')
+            .delete()
+            .eq('username', username);
+
+        if (error) {
+            console.error("Delete Account Error:", error);
+            return NextResponse.json({ error: error.message }, { status: 500 });
         }
+
+        return NextResponse.json({ success: true, message: 'Account deleted successfully' });
     } catch (err: any) {
         console.error("Delete Account Error:", err);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ error: 'Internal server error: ' + (err.message || String(err)) }, { status: 500 });
     }
 }

@@ -1,16 +1,23 @@
 import { NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import supabase from '@/lib/supabase';
 
 export async function GET() {
     try {
-        const client = await pool.connect();
-        const result = await client.query('SELECT is_active, end_time FROM event_settings WHERE id = 1');
-        client.release();
+        const { data, error } = await supabase
+            .from('event_settings')
+            .select('is_active')
+            .eq('id', 1)
+            .maybeSingle();
 
-        if (result.rows.length === 0) {
-            return NextResponse.json({ is_active: false, end_time: null });
+        if (error) {
+            return NextResponse.json({ error: error.message }, { status: 500 });
         }
-        return NextResponse.json(result.rows[0]);
+
+        if (!data) {
+            return NextResponse.json({ is_active: false });
+        }
+
+        return NextResponse.json(data);
     } catch (err: any) {
         return NextResponse.json({ error: err.message }, { status: 500 });
     }

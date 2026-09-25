@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from 'next/server';
-import pool from '@/lib/db';
+import supabase from '@/lib/supabase';
 
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
@@ -10,29 +10,30 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-        const client = await pool.connect();
-        try {
-            const result = await client.query(
-                'SELECT score, time_taken FROM leaderboard WHERE username = $1',
-                [username]
-            );
+        const { data, error } = await supabase
+            .from('leaderboard')
+            .select('score, time_taken')
+            .eq('username', username)
+            .maybeSingle();
 
-            if (result.rows.length > 0) {
-                return NextResponse.json({
-                    hasAttempted: true,
-                    score: result.rows[0].score,
-                    time_taken: result.rows[0].time_taken
-                });
-            } else {
-                return NextResponse.json({
-                    hasAttempted: false
-                });
-            }
-        } finally {
-            client.release();
+        if (error) {
+            console.error("Database error checking user status:", error);
+            return NextResponse.json({ error: error.message }, { status: 500 });
         }
-    } catch (err) {
+
+        if (data) {
+            return NextResponse.json({
+                hasAttempted: true,
+                score: data.score,
+                time_taken: data.time_taken,
+            });
+        } else {
+            return NextResponse.json({
+                hasAttempted: false,
+            });
+        }
+    } catch (err: any) {
         console.error("Database error checking user status:", err);
-        return NextResponse.json({ error: 'Database error' }, { status: 500 });
+        return NextResponse.json({ error: 'Database error: ' + (err.message || String(err)) }, { status: 500 });
     }
 }

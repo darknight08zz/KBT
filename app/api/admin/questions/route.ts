@@ -1,26 +1,24 @@
 import { NextResponse, NextRequest } from 'next/server';
-import pool from '@/lib/db';
+import supabase from '@/lib/supabase';
 
 export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url);
         const year = searchParams.get('year');
 
-        const client = await pool.connect();
-
-        let query = 'SELECT * FROM questions';
-        let params: any[] = [];
+        let query = supabase.from('questions').select('*');
 
         if (year) {
-            query += ' WHERE year_category = $1';
-            params.push(year);
+            query = query.eq('year_category', year);
         }
 
-        query += ' ORDER BY id ASC';
+        const { data, error } = await query.order('id', { ascending: true });
 
-        const result = await client.query(query, params);
-        client.release();
-        return NextResponse.json(result.rows);
+        if (error) {
+            return NextResponse.json({ error: error.message }, { status: 500 });
+        }
+
+        return NextResponse.json(data || []);
     } catch (err: any) {
         return NextResponse.json({ error: err.message }, { status: 500 });
     }
@@ -31,13 +29,33 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const { text, options, answer, topic, difficulty, type, keywords, image_url, year_category } = body;
 
-        const client = await pool.connect();
         const keywordsStr = Array.isArray(keywords) ? keywords.join(',') : (keywords || '');
-        await client.query(
-            'INSERT INTO questions (text, options, answer, topic, difficulty, type, keywords, image_url, year_category) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
-            [text, options, answer, topic, difficulty || 'medium', type || 'mcq', keywordsStr, image_url, year_category || '1st']
-        );
-        client.release();
+        let optionsData = options;
+        if (typeof options === 'string') {
+            try {
+                optionsData = JSON.parse(options);
+            } catch {
+                optionsData = options.split(',').map((s: string) => s.trim());
+            }
+        }
+
+        const { error } = await supabase.from('questions').insert([
+            {
+                text,
+                options: optionsData,
+                answer,
+                topic,
+                difficulty: difficulty || 'medium',
+                type: type || 'mcq',
+                keywords: keywordsStr,
+                image_url,
+                year_category: year_category || '1st',
+            },
+        ]);
+
+        if (error) {
+            return NextResponse.json({ error: error.message }, { status: 500 });
+        }
 
         return NextResponse.json({ success: true });
     } catch (err: any) {
@@ -52,14 +70,34 @@ export async function PUT(request: NextRequest) {
 
         if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
 
-        const client = await pool.connect();
         const keywordsStr = Array.isArray(keywords) ? keywords.join(',') : (keywords || '');
+        let optionsData = options;
+        if (typeof options === 'string') {
+            try {
+                optionsData = JSON.parse(options);
+            } catch {
+                optionsData = options.split(',').map((s: string) => s.trim());
+            }
+        }
 
-        await client.query(
-            'UPDATE questions SET text=$1, options=$2, answer=$3, topic=$4, difficulty=$5, type=$6, keywords=$7, image_url=$8, year_category=$9 WHERE id=$10',
-            [text, options, answer, topic, difficulty || 'medium', type || 'mcq', keywordsStr, image_url, year_category || '1st', id]
-        );
-        client.release();
+        const { error } = await supabase
+            .from('questions')
+            .update({
+                text,
+                options: optionsData,
+                answer,
+                topic,
+                difficulty: difficulty || 'medium',
+                type: type || 'mcq',
+                keywords: keywordsStr,
+                image_url,
+                year_category: year_category || '1st',
+            })
+            .eq('id', id);
+
+        if (error) {
+            return NextResponse.json({ error: error.message }, { status: 500 });
+        }
 
         return NextResponse.json({ success: true });
     } catch (err: any) {
@@ -69,15 +107,19 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
     try {
-        // Delete requires ID from query params
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
 
         if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
 
-        const client = await pool.connect();
-        await client.query('DELETE FROM questions WHERE id = $1', [id]);
-        client.release();
+        const { error } = await supabase
+            .from('questions')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            return NextResponse.json({ error: error.message }, { status: 500 });
+        }
 
         return NextResponse.json({ success: true });
     } catch (err: any) {

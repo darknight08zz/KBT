@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from 'next/server';
-import pool from '@/lib/db';
+import supabase from '@/lib/supabase';
 
 interface LeaderboardEntry {
     username: string;
@@ -10,17 +10,21 @@ interface LeaderboardEntry {
 
 export async function GET() {
     try {
-        const client = await pool.connect();
-        try {
-            const result = await client.query(
-                'SELECT username, time_taken, score, created_at FROM leaderboard ORDER BY score DESC, time_taken ASC LIMIT 50'
-            );
-            return NextResponse.json(result.rows);
-        } finally {
-            client.release();
+        const { data, error } = await supabase
+            .from('leaderboard')
+            .select('username, time_taken, score, created_at')
+            .order('score', { ascending: false })
+            .order('time_taken', { ascending: true })
+            .limit(50);
+
+        if (error) {
+            console.error('Leaderboard GET error:', error);
+            return NextResponse.json({ error: error.message }, { status: 500 });
         }
-    } catch (err) {
-        return NextResponse.json({ error: 'Database error' }, { status: 500 });
+
+        return NextResponse.json(data || []);
+    } catch (err: any) {
+        return NextResponse.json({ error: 'Database error: ' + (err.message || String(err)) }, { status: 500 });
     }
 }
 
@@ -34,32 +38,45 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
         }
 
-        const client = await pool.connect();
-        try {
-            // Check if user exists (Global check, ignoring year)
-            const checkRes = await client.query('SELECT * FROM leaderboard WHERE username = $1', [username]);
+        // Check if user has already submitted (First time score is final)
+        const { data: existing, error: checkError } = await supabase
+            .from('leaderboard')
+            .select('id')
+            .eq('username', username)
+            .maybeSingle();
 
-            if (checkRes.rows.length > 0) {
-                // User already exists.
-                // Rule: "First time score is final". Do not update.
-                return NextResponse.json({ success: true, message: 'Score already recorded' });
-            } else {
-                // Insert new entry
-                await client.query(
-                    'INSERT INTO leaderboard (username, time_taken, score, year) VALUES ($1, $2, $3, $4)',
-                    [username, time_taken, score, yearVal]
-                );
-                return NextResponse.json({ success: true });
-            }
-        } finally {
-            client.release();
+        if (checkError) {
+            console.error('Leaderboard check error:', checkError);
+            return NextResponse.json({ error: checkError.message }, { status: 500 });
         }
-    } catch (err: any) {
-        console.error('Leaderboard Submission Error:', err);
-        // Handle race condition unique violation
-        if (err.code === '23505') {
+
+        if (existing) {
             return NextResponse.json({ success: true, message: 'Score already recorded' });
         }
+
+        const { error: insertError } = await supabase
+            .from('leaderboard')
+            .insert([
+                {
+                    username,
+                    time_taken,
+                    score,
+                    year: yearVal,
+                },
+            ]);
+
+        if (insertError) {
+            // Check for unique violation code (23505)
+            if (insertError.code === '23505') {
+                return NextResponse.json({ success: true, message: 'Score already recorded' });
+            }
+            console.error('Leaderboard insert error:', insertError);
+            return NextResponse.json({ error: insertError.message }, { status: 500 });
+        }
+
+        return NextResponse.json({ success: true });
+    } catch (err: any) {
+        console.error('Leaderboard Submission Error:', err);
         return NextResponse.json({ error: err.message || 'Database error' }, { status: 500 });
     }
 }

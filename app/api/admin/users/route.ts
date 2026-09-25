@@ -1,12 +1,18 @@
 import { NextResponse, NextRequest } from 'next/server';
-import pool from '@/lib/db';
+import supabase from '@/lib/supabase';
 
 export async function GET() {
     try {
-        const client = await pool.connect();
-        const result = await client.query('SELECT id, username, email, role, created_at FROM users ORDER BY created_at DESC');
-        client.release();
-        return NextResponse.json(result.rows);
+        const { data, error } = await supabase
+            .from('users')
+            .select('id, username, email, role, created_at, is_blocked')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            return NextResponse.json({ error: error.message }, { status: 500 });
+        }
+
+        return NextResponse.json(data || []);
     } catch (err: any) {
         return NextResponse.json({ error: err.message }, { status: 500 });
     }
@@ -18,9 +24,15 @@ export async function DELETE(request: NextRequest) {
         const id = searchParams.get('id');
         if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
 
-        const client = await pool.connect();
-        await client.query('DELETE FROM users WHERE id = $1', [id]);
-        client.release();
+        const { error } = await supabase
+            .from('users')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            return NextResponse.json({ error: error.message }, { status: 500 });
+        }
+
         return NextResponse.json({ success: true });
     } catch (err: any) {
         return NextResponse.json({ error: err.message }, { status: 500 });
@@ -33,9 +45,15 @@ export async function PATCH(request: NextRequest) {
         const { id, is_blocked } = body;
         if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
 
-        const client = await pool.connect();
-        await client.query('UPDATE users SET is_blocked = $1 WHERE id = $2', [is_blocked, id]);
-        client.release();
+        const { error } = await supabase
+            .from('users')
+            .update({ is_blocked })
+            .eq('id', id);
+
+        if (error) {
+            return NextResponse.json({ error: error.message }, { status: 500 });
+        }
+
         return NextResponse.json({ success: true });
     } catch (err: any) {
         return NextResponse.json({ error: err.message }, { status: 500 });

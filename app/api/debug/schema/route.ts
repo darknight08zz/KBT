@@ -1,23 +1,28 @@
 import { NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import supabase from '@/lib/supabase';
 
 export async function GET() {
     try {
-        const client = await pool.connect();
-        try {
-            const cols = await client.query(`SELECT column_name, data_type, is_nullable FROM information_schema.columns WHERE table_name = 'leaderboard'`);
-            const cons = await client.query(`SELECT conname, contype, pg_get_constraintdef(oid) FROM pg_constraint WHERE conrelid = 'leaderboard'::regclass`);
+        const { data: leaderboardSample, error: lbError } = await supabase
+            .from('leaderboard')
+            .select('*')
+            .limit(1);
 
-            return NextResponse.json({
-                columns: cols.rows,
-                constraints: cons.rows,
-                env_url: process.env.POSTGRES_URL ? 'Set' : 'Unset', // Do not leak full URL
-                db_url: process.env.DATABASE_URL ? 'Set' : 'Unset'
-            });
-        } finally {
-            client.release();
-        }
-    } catch (err) {
+        const { data: userSample, error: userError } = await supabase
+            .from('users')
+            .select('id, username, role, created_at')
+            .limit(1);
+
+        return NextResponse.json({
+            supabase_url: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Configured' : 'Missing',
+            supabase_anon_key: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Configured' : 'Missing',
+            supabase_service_role_key: process.env.SUPABASE_SERVICE_ROLE_KEY ? 'Configured' : 'Missing',
+            leaderboard_status: lbError ? lbError.message : 'Accessible',
+            users_status: userError ? userError.message : 'Accessible',
+            sample_leaderboard: leaderboardSample,
+            sample_user: userSample,
+        });
+    } catch (err: any) {
         return NextResponse.json({ error: String(err) }, { status: 500 });
     }
 }

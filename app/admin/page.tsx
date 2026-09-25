@@ -29,8 +29,7 @@ export default function AdminPage() {
     const [editingQuestionId, setEditingQuestionId] = useState<number | null>(null);
 
     // Event State
-    const [eventStatus, setEventStatus] = useState<{ is_active: boolean; end_time: string | null }>({ is_active: false, end_time: null });
-    const [timeLeft, setTimeLeft] = useState<string>('');
+    const [eventStatus, setEventStatus] = useState<{ is_active: boolean }>({ is_active: false });
 
     useEffect(() => {
         // Basic Role Check
@@ -40,6 +39,16 @@ export default function AdminPage() {
             return;
         }
         fetchData();
+
+        // Poll arena status every 30s so the UI stays in sync with the DB
+        const poll = setInterval(() => {
+            fetch('/api/admin/event')
+                .then(r => r.json())
+                .then(data => setEventStatus({ is_active: !!data.is_active }))
+                .catch(() => { });
+        }, 30_000);
+
+        return () => clearInterval(poll);
     }, []);
 
     const fetchData = async () => {
@@ -54,37 +63,11 @@ export default function AdminPage() {
         const res = await fetch('/api/admin/event');
         if (res.ok) {
             const data = await res.json();
-            setEventStatus(data);
+            setEventStatus({ is_active: !!data.is_active });
         }
     };
 
-
-
-
-    useEffect(() => {
-        const timer = setInterval(() => {
-            if (eventStatus.is_active && eventStatus.end_time) {
-                const end = new Date(eventStatus.end_time).getTime();
-                const now = new Date().getTime();
-                const dist = end - now;
-
-                if (dist < 0) {
-                    setEventStatus({ ...eventStatus, is_active: false });
-                    setTimeLeft('EXPIRED');
-                } else {
-                    const hours = Math.floor((dist % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                    const minutes = Math.floor((dist % (1000 * 60 * 60)) / (1000 * 60));
-                    const seconds = Math.floor((dist % (1000 * 60)) / 1000);
-                    setTimeLeft(`${hours}h ${minutes}m ${seconds}s`);
-                }
-            } else {
-                setTimeLeft('');
-            }
-        }, 1000);
-        return () => clearInterval(timer);
-    }, [eventStatus]);
-
-    const handleEventAction = async (action: 'enable' | 'disable' | 'start' | 'stop') => {
+    const handleEventAction = async (action: 'enable' | 'disable') => {
         const res = await fetch('/api/admin/event', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -92,7 +75,9 @@ export default function AdminPage() {
         });
         if (res.ok) {
             const data = await res.json();
-            setEventStatus(data);
+            setEventStatus({ is_active: !!data.is_active });
+            // Re-fetch after 1s to confirm DB state
+            setTimeout(fetchEventStatus, 1000);
         }
     };
 
@@ -470,34 +455,9 @@ export default function AdminPage() {
                     {/* CONTROLS TAB */}
                     {activeTab === 'controls' && (
                         <div className="space-y-8">
-                            {/* EVENT TIMER CONTROL */}
-                            {/* EVENT TIMER CONTROL */}
-                            <div className="p-6 rounded-xl border border-purple-500/30 bg-purple-500/5">
-                                <h3 className="text-purple-400 font-bold text-lg mb-4">Event Timer Control (12 Hours)</h3>
-                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                    <div>
-                                        <p className="text-gray-400 mb-2">Timer Status:</p>
-                                        {eventStatus.is_active && eventStatus.end_time ? (
-                                            <p className="text-2xl font-mono font-bold text-purple-400">{timeLeft}</p>
-                                        ) : (
-                                            <p className="text-gray-500 font-mono">No Active Timer</p>
-                                        )}
-                                    </div>
-                                    <div className="flex gap-4 w-full md:w-auto">
-                                        <button
-                                            onClick={() => handleEventAction('start')}
-                                            disabled={eventStatus.is_active && !!eventStatus.end_time}
-                                            className="w-full md:w-auto px-6 py-3 bg-purple-600 hover:bg-purple-500 rounded-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            Start 12-Hour Timer
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* MANUAL CONTROL */}
+                            {/* ARENA ACCESS CONTROL */}
                             <div className="p-6 rounded-xl border border-blue-500/30 bg-blue-500/5">
-                                <h3 className="text-blue-400 font-bold text-lg mb-4">Manual Access Control</h3>
+                                <h3 className="text-blue-400 font-bold text-lg mb-4">Arena Access Control</h3>
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                     <div>
                                         <p className="text-gray-400 mb-2">Current Status:
@@ -505,8 +465,10 @@ export default function AdminPage() {
                                                 {eventStatus.is_active ? 'OPEN (Users can enter)' : 'LOCKED (Users cannot enter)'}
                                             </span>
                                         </p>
-                                        {eventStatus.is_active && !eventStatus.end_time && (
-                                            <p className="text-xs text-blue-300 mt-1">● Manually Enabled (Indefinite)</p>
+                                        {eventStatus.is_active ? (
+                                            <p className="text-xs text-green-400 mt-1">● Arena is currently active</p>
+                                        ) : (
+                                            <p className="text-xs text-gray-400 mt-1">● Arena is currently locked</p>
                                         )}
                                     </div>
                                     <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">

@@ -21,32 +21,11 @@ function QuizContent() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [username, setUsername] = useState<string>('');
 
-    // Timers
-    const [eventTimeLeft, setEventTimeLeft] = useState<number | null>(null);
-    const [questionTimeLeft, setQuestionTimeLeft] = useState<number>(0);
-    const [isQuestionTimerPaused, setIsQuestionTimerPaused] = useState(false);
+    // 20-Minute Quiz Countdown Timer
+    const [quizTimeLeft, setQuizTimeLeft] = useState<number>(20 * 60);
 
     // Modals
     const [isExitModalOpen, setIsExitModalOpen] = useState(false);
-    const [isLockModalOpen, setIsLockModalOpen] = useState(false);
-
-    const getTimerForDifficulty = (diff: string | undefined): number => {
-        switch (diff?.toLowerCase()) {
-            case 'easy': return 15;
-            case 'medium': return 60;
-            case 'hard': return 180;
-            default: return 60;
-        }
-    };
-
-    // Reset Question Timer on Question Change
-    useEffect(() => {
-        if (questions.length > 0 && questions[currentQuestionIndex]) {
-            const t = getTimerForDifficulty(questions[currentQuestionIndex].difficulty);
-            setQuestionTimeLeft(t);
-            setIsQuestionTimerPaused(false);
-        }
-    }, [currentQuestionIndex, questions]);
 
     useEffect(() => {
         const storedUser = sessionStorage.getItem('kbt-username');
@@ -66,16 +45,10 @@ function QuizContent() {
                 const eventData = await eventRes.json();
 
                 // Admin Bypass: If role is admin, skip active check
-                if (role !== 'admin' && (!eventData.is_active || (eventData.end_time && new Date(eventData.end_time).getTime() < Date.now()))) {
+                if (role !== 'admin' && !eventData.is_active) {
                     alert("The event is not currently active.");
                     navigate('/dashboard');
                     return;
-                }
-
-                // Set Event Timer
-                if (eventData.end_time) {
-                    const diff = Math.floor((new Date(eventData.end_time).getTime() - Date.now()) / 1000);
-                    setEventTimeLeft(diff > 0 ? diff : 0);
                 }
 
                 // 2. Check User Status
@@ -114,8 +87,7 @@ function QuizContent() {
     }, [navigate]);
 
     const handleAnswer = (answer: string | string[]) => {
-        // If time is up, prevent answering
-        if (questionTimeLeft <= 0) return;
+        if (quizTimeLeft <= 0 || isSubmitting) return;
 
         const newAnswers = [...selectedAnswers];
         newAnswers[currentQuestionIndex] = answer;
@@ -123,17 +95,6 @@ function QuizContent() {
     };
 
     const handleNext = () => {
-        // If question time is NOT up, prompt "Lock Kiya Jaye?"
-        if (questionTimeLeft > 0) {
-            setIsQuestionTimerPaused(true);
-            setIsLockModalOpen(true);
-        } else {
-            // Time up, proceed immediately
-            proceedToNext();
-        }
-    };
-
-    const proceedToNext = () => {
         if (currentQuestionIndex < questions.length - 1) {
             setCurrentQuestionIndex(prev => prev + 1);
         } else {
@@ -141,78 +102,53 @@ function QuizContent() {
         }
     };
 
-    const handleConfirmLock = () => {
-        setIsLockModalOpen(false);
-        setIsQuestionTimerPaused(false);
-        proceedToNext();
-    };
-
-    const handleCancelLock = () => {
-        setIsLockModalOpen(false);
-        setIsQuestionTimerPaused(false);
+    const handleQuizTimeUp = () => {
+        if (isSubmitting) return;
+        setIsExitModalOpen(false);
+        handleSubmit();
     };
 
     const [startTime] = useState(Date.now());
 
     // Removed handlePrev as per strict flow requirements
 
-    const handleEventTimeUp = () => {
-        handleSubmit();
-    };
 
     const handleSubmit = async () => {
         if (isSubmitting) return;
         setIsSubmitting(true);
 
-        // Calculate Score
-        let score = 0;
+        // Calculate Score: +10 pts per correct answer, no negative marking
+        let correctCount = 0;
         questions.forEach((q, index) => {
             const userAns = selectedAnswers[index];
             if (!userAns) return;
 
             if (q.type === 'multiselect') {
-                // Array comparison
-                if (Array.isArray(userAns)) {
-
-                    if (JSON.stringify(userAns.sort()) === q.answer) score += 1;
+                if (Array.isArray(userAns) && JSON.stringify([...userAns].sort()) === JSON.stringify(JSON.parse(q.answer || '[]').sort())) {
+                    correctCount += 1;
                 }
             } else if (q.type === 'short_answer' || q.type === 'long_answer') {
                 const ansStr = typeof userAns === 'string' ? userAns.trim() : '';
-
                 // Smart Matching (Keywords)
                 if (q.keywords && q.keywords.length > 0) {
-
-                    const keywordsArr = Array.isArray(q.keywords) ? q.keywords : (q.keywords as string).split(',').map(k => k.trim());
+                    const keywordsArr = Array.isArray(q.keywords)
+                        ? q.keywords
+                        : (q.keywords as string).split(',').map(k => k.trim());
                     const matchesAll = keywordsArr.every(k => ansStr.toLowerCase().includes(k.toLowerCase()));
-
-                    if (matchesAll) score += 1;
+                    if (matchesAll) correctCount += 1;
+                } else if (ansStr.toLowerCase() === q.answer.trim().toLowerCase()) {
+                    correctCount += 1;
                 }
-                // Fallback to exact match (relaxed)
-                else if (ansStr.toLowerCase() === q.answer.trim().toLowerCase()) {
-                    score += 1;
-                }
-
-                // Long answer usually needs manual review, but if keywords match we give points auto.
-                // If not matched, we leave it as 0 (or manual).
             } else {
-                // MCQ
+                // MCQ: exact match, no negative marking
                 if (userAns === q.answer) {
-                    score += 1;
-                } else {
-                    // Negative marking logic
-                    switch (q.difficulty?.toLowerCase()) {
-                        case 'easy': score -= 1; break;
-                        case 'medium': score -= 0.5; break;
-                        case 'hard': break; // No penalty for hard
-                        default: break;
-                    }
+                    correctCount += 1;
                 }
             }
         });
 
-
-
-        const timeTaken = Math.floor((Date.now() - startTime) / 1000);
+        const score = correctCount * 10; // 10 pts per correct answer
+        const timeTaken = Math.floor((Date.now() - startTime) / 1000); // seconds elapsed
 
         try {
             const res = await fetch('/api/leaderboard', {
@@ -227,7 +163,7 @@ function QuizContent() {
             });
 
             if (res.ok) {
-                navigate(`/result?total=${questions.length}`);
+                navigate(`/result?total=${questions.length}&score=${score}&time=${timeTaken}&correct=${correctCount}`);
             } else {
                 const errorData = await res.json();
                 alert(`Failed to submit: ${errorData.message || errorData.error || 'Unknown error'}`);
@@ -277,16 +213,6 @@ function QuizContent() {
                     onCancel={() => setIsExitModalOpen(false)}
                 />
 
-                <Modal
-                    isOpen={isLockModalOpen}
-                    title="Lock This Answer?"
-                    message="Are you sure you want to lock this answer and proceed to the next question? This cannot be changed."
-                    type="info"
-                    confirmText="Yes, Lock it! 🔒"
-                    cancelText="Wait, let me think 🤔"
-                    onConfirm={handleConfirmLock}
-                    onCancel={handleCancelLock}
-                />
 
                 {/* Header */}
                 <header className="p-4 border-b border-white/10 flex justify-between items-center bg-black/50 backdrop-blur-md fixed top-0 w-full z-10">
@@ -303,18 +229,21 @@ function QuizContent() {
                             <p className="text-xs text-secondary">Player: <span className="text-white">{username}</span></p>
                         </div>
                     </div>
-                    {/* Global Event Timer */}
-                    <div className="flex flex-col items-end">
-                        <span className="text-[10px] text-gray-400 uppercase tracking-wider">Event Ends In</span>
-                        {eventTimeLeft !== null ? (
+                    {/* Header Controls: Live Badge & 20-Minute Quiz Countdown Timer */}
+                    <div className="flex items-center gap-4">
+                        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-green-500/10 text-green-400 border border-green-500/20">
+                            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                            Live Arena
+                        </div>
+                        <div className="flex flex-col items-end">
+                            <span className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Quiz Time Remaining</span>
                             <Timer
-                                timeLeft={eventTimeLeft}
-                                setTimeLeft={(t) => setEventTimeLeft(t)}
-                                onTimeUp={handleEventTimeUp}
+                                timeLeft={quizTimeLeft}
+                                setTimeLeft={setQuizTimeLeft}
+                                onTimeUp={handleQuizTimeUp}
+                                isRunning={!isSubmitting && questions.length > 0}
                             />
-                        ) : (
-                            <div className="glass-panel px-4 py-2 text-xl font-mono font-bold text-gray-500">--:--:--</div>
-                        )}
+                        </div>
                     </div>
                 </header>
 
@@ -324,25 +253,25 @@ function QuizContent() {
 
                         {/* Question Panel */}
                         <div className="lg:col-span-2 space-y-6">
-                            {/* Question Timer Bar */}
+                            {/* Question Info Bar */}
                             <div className="flex justify-between items-center glass-panel p-4">
                                 <div>
-                                    <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">Question Timer</div>
-                                    <div className={`text-sm font-bold ${questionTimeLeft <= 10 ? 'text-red-500 animate-pulse' : 'text-primary'}`}>
+                                    <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">
+                                        Question {currentQuestionIndex + 1} of {questions.length}
+                                    </div>
+                                    <div className="text-sm font-bold text-primary">
+                                        {questions[currentQuestionIndex]?.topic ? `${questions[currentQuestionIndex].topic} • ` : ''}
                                         {questions[currentQuestionIndex]?.difficulty?.toUpperCase()} Level
                                     </div>
                                 </div>
-                                <div className={`${questionTimeLeft === 0 ? 'opacity-50' : ''}`}>
-                                    <Timer
-                                        timeLeft={questionTimeLeft}
-                                        setTimeLeft={setQuestionTimeLeft}
-                                        onTimeUp={() => { }} // Handled by state
-                                        isRunning={!isQuestionTimerPaused}
-                                    />
+                                <div className="text-xs px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-gray-300 font-medium">
+                                    {questions[currentQuestionIndex]?.type === 'multiselect' ? '☑ Multi-Select' :
+                                        questions[currentQuestionIndex]?.type === 'short_answer' ? '✍ Short Answer' :
+                                        questions[currentQuestionIndex]?.type === 'long_answer' ? '📝 Long Answer' : '🔘 Single Choice'}
                                 </div>
                             </div>
 
-                            <div className={`transition-opacity duration-300 ${questionTimeLeft <= 0 ? 'opacity-60 pointer-events-none grayscale' : ''}`}>
+                            <div className="transition-opacity duration-300">
                                 <QuestionPanel
                                     question={questions[currentQuestionIndex]}
                                     currentQuestionIndex={currentQuestionIndex + 1}
@@ -359,19 +288,24 @@ function QuizContent() {
                                 {currentQuestionIndex === questions.length - 1 ? (
                                     <button
                                         onClick={handleSubmit}
-                                        disabled={isSubmitting}
-                                        className="px-8 py-3 rounded-xl font-bold bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-900/20 transition-all transform hover:scale-105"
+                                        disabled={isSubmitting || !selectedAnswers[currentQuestionIndex]}
+                                        className={`px-8 py-3 rounded-xl font-bold transition-all transform hover:scale-105 ${
+                                            !selectedAnswers[currentQuestionIndex] || isSubmitting
+                                                ? 'bg-white/10 text-gray-500 cursor-not-allowed'
+                                                : 'bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-900/20'
+                                        }`}
                                     >
                                         {isSubmitting ? 'Submitting...' : 'Submit Quiz'}
                                     </button>
                                 ) : (
                                     <button
                                         onClick={handleNext}
-                                        disabled={!selectedAnswers[currentQuestionIndex] && questionTimeLeft > 0}
-                                        className={`px-8 py-3 rounded-xl font-bold transition-all transform hover:scale-105 ${(!selectedAnswers[currentQuestionIndex] && questionTimeLeft > 0)
-                                            ? 'bg-white/10 text-gray-500 cursor-not-allowed'
-                                            : 'bg-primary hover:bg-primary-glow text-white shadow-lg shadow-primary/20'
-                                            }`}
+                                        disabled={!selectedAnswers[currentQuestionIndex]}
+                                        className={`px-8 py-3 rounded-xl font-bold transition-all transform hover:scale-105 ${
+                                            !selectedAnswers[currentQuestionIndex]
+                                                ? 'bg-white/10 text-gray-500 cursor-not-allowed'
+                                                : 'bg-primary hover:bg-primary-glow text-white shadow-lg shadow-primary/20'
+                                        }`}
                                     >
                                         Next Question
                                     </button>

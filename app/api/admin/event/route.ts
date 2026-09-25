@@ -1,17 +1,23 @@
-
 import { NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import supabase from '@/lib/supabase';
 
 export async function GET() {
     try {
-        const client = await pool.connect();
-        const result = await client.query('SELECT * FROM event_settings WHERE id = 1');
-        client.release();
+        const { data, error } = await supabase
+            .from('event_settings')
+            .select('is_active')   // Only read is_active — ignore any stale end_time
+            .eq('id', 1)
+            .maybeSingle();
 
-        if (result.rows.length === 0) {
+        if (error) {
+            return NextResponse.json({ error: error.message }, { status: 500 });
+        }
+
+        if (!data) {
             return NextResponse.json({ is_active: false });
         }
-        return NextResponse.json(result.rows[0]);
+
+        return NextResponse.json({ is_active: !!data.is_active });
     } catch (err: any) {
         return NextResponse.json({ error: err.message }, { status: 500 });
     }
@@ -19,33 +25,35 @@ export async function GET() {
 
 export async function POST(request: Request) {
     try {
-        const { action } = await request.json(); // 'start' or 'stop'
-        const client = await pool.connect();
+        const { action } = await request.json(); // 'enable' | 'disable'
 
-        if (action === 'start') {
-            // Set end_time to 6 hours from now
-            await client.query(`
-                 UPDATE event_settings 
-                 SET is_active = TRUE, 
-                     end_time = NOW() + INTERVAL '12 hours' 
-                 WHERE id = 1
-             `);
-        } else if (action === 'enable') {
-            // Enable event indefinitely
-            await client.query(`
-                UPDATE event_settings 
-                SET is_active = TRUE, 
-                    end_time = NULL
-                WHERE id = 1
-            `);
-        } else if (action === 'stop' || action === 'disable') {
-            await client.query('UPDATE event_settings SET is_active = FALSE WHERE id = 1');
+        let updateData: Record<string, any> = {};
+
+        if (action === 'enable' || action === 'start') {
+            updateData = {
+                is_active: true,
+                end_time: null,   // Always clear any residual timer
+            };
+        } else if (action === 'disable' || action === 'stop') {
+            updateData = {
+                is_active: false,
+                end_time: null,   // Clear residual timer on disable too
+            };
+        } else {
+            return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
         }
 
-        const result = await client.query('SELECT * FROM event_settings WHERE id = 1');
-        client.release();
-        return NextResponse.json(result.rows[0]);
+        const { data, error } = await supabase
+            .from('event_settings')
+            .upsert({ id: 1, ...updateData })
+            .select('is_active')
+            .single();
 
+        if (error) {
+            return NextResponse.json({ error: error.message }, { status: 500 });
+        }
+
+        return NextResponse.json({ is_active: !!data.is_active });
     } catch (err: any) {
         return NextResponse.json({ error: err.message }, { status: 500 });
     }

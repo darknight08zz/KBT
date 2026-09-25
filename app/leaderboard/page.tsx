@@ -33,12 +33,17 @@ export default function LeaderboardPage() {
                 setLoading(false);
             }
         }
-
         fetchLeaderboard();
     }, []);
 
+    const formatTime = (seconds: number) => {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${m}m ${s.toString().padStart(2, '0')}s`;
+    };
+
     const getAvatar = (rank: number) => {
-        if (rank === 0) return '👑';
+        if (rank === 0) return '🥇';
         if (rank === 1) return '🥈';
         if (rank === 2) return '🥉';
         return '👤';
@@ -116,7 +121,8 @@ export default function LeaderboardPage() {
                                 <div className="bg-black/40 backdrop-blur-md border border-white/10 p-6 rounded-t-2xl w-48 text-center h-48 flex flex-col justify-end">
                                     <div className="text-2xl font-bold text-gray-300">2nd</div>
                                     <div className="font-bold text-white truncate">{topThree[1].username}</div>
-                                    <div className="text-primary-glow font-mono">{topThree[1].score} XP</div>
+                                    <div className="text-primary-glow font-mono font-bold">{topThree[1].score} pts</div>
+                                    <div className="text-gray-500 text-xs mt-1">{Math.round(topThree[1].score / 10)} correct</div>
                                 </div>
                             </div>
 
@@ -131,7 +137,8 @@ export default function LeaderboardPage() {
                                 <div className="bg-gradient-to-b from-primary/20 to-black/60 backdrop-blur-md border border-yellow-500/30 p-8 rounded-t-2xl w-56 text-center h-60 flex flex-col justify-end shadow-2xl shadow-primary/10">
                                     <div className="text-3xl font-bold text-yellow-400">1st</div>
                                     <div className="font-bold text-white text-xl truncate">{topThree[0].username}</div>
-                                    <div className="text-yellow-200 font-mono text-lg">{topThree[0].score} XP</div>
+                                    <div className="text-yellow-200 font-mono text-lg font-bold">{topThree[0].score} pts</div>
+                                    <div className="text-yellow-500/60 text-xs mt-1">{Math.round(topThree[0].score / 10)} correct</div>
                                 </div>
                             </div>
 
@@ -143,35 +150,48 @@ export default function LeaderboardPage() {
                                 <div className="bg-black/40 backdrop-blur-md border border-white/10 p-6 rounded-t-2xl w-48 text-center h-40 flex flex-col justify-end">
                                     <div className="text-2xl font-bold text-amber-600">3rd</div>
                                     <div className="font-bold text-white truncate">{topThree[2].username}</div>
-                                    <div className="text-primary-glow font-mono">{topThree[2].score} XP</div>
+                                    <div className="text-primary-glow font-mono font-bold">{topThree[2].score} pts</div>
+                                    <div className="text-gray-500 text-xs mt-1">{Math.round(topThree[2].score / 10)} correct</div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Leaderboard Table */}
                         <div className="bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl mb-20">
+                            <div className="px-6 py-4 border-b border-white/10 bg-white/5 flex items-center justify-between">
+                                <p className="text-xs text-gray-500 uppercase tracking-wider">
+                                    Ranked by Highest Score · Fastest Time (tie-breaker)
+                                </p>
+                            </div>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left">
                                     <thead>
                                         <tr className="border-b border-white/10 bg-white/5">
-                                            <th className="p-3 md:p-6 font-bold text-gray-300 tracking-wider uppercase text-sm">Rank</th>
+                                            <th className="p-3 md:p-6 font-bold text-gray-300 tracking-wider uppercase text-sm w-16">Rank</th>
                                             <th className="p-3 md:p-6 font-bold text-gray-300 tracking-wider uppercase text-sm">Player</th>
-                                            <th className="p-3 md:p-6 font-bold text-gray-300 tracking-wider uppercase text-sm">Time (s)</th>
-                                            <th className="p-3 md:p-6 font-bold text-gray-300 tracking-wider uppercase text-sm text-right">Score (XP)</th>
+                                            <th className="p-3 md:p-6 font-bold text-gray-300 tracking-wider uppercase text-sm text-center">Score</th>
+                                            <th className="p-3 md:p-6 font-bold text-gray-300 tracking-wider uppercase text-sm text-center">Correct Ans</th>
+                                            <th className="p-3 md:p-6 font-bold text-gray-300 tracking-wider uppercase text-sm text-right">Time Taken</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-white/5">
-                                        {leaderboardData.map((player, index) => (
-                                            <tr key={index} className="group hover:bg-white/5 transition-colors">
-                                                <td className="p-3 md:p-6 font-mono text-gray-400 group-hover:text-white">#{index + 1}</td>
-                                                <td className="p-3 md:p-6 font-medium text-white flex items-center gap-3">
-                                                    <span className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-sm">{getAvatar(index)}</span>
-                                                    <span>{player.username || 'Unknown'}</span>
-                                                </td>
-                                                <td className="p-3 md:p-6 text-gray-400">{player.time_taken}s</td>
-                                                <td className="p-3 md:p-6 text-right font-mono text-primary-glow font-bold">{player.score.toLocaleString()}</td>
-                                            </tr>
-                                        ))}
+                                        {leaderboardData.map((player, index) => {
+                                            const rank = index + 1;
+                                            const rankDisplay = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
+                                            const correctFromScore = Math.round(player.score / 10);
+                                            return (
+                                                <tr key={index} className="group hover:bg-white/5 transition-colors">
+                                                    <td className="p-3 md:p-6 font-bold text-lg">{rankDisplay}</td>
+                                                    <td className="p-3 md:p-6 font-medium text-white flex items-center gap-3">
+                                                        <span className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-sm">{getAvatar(index)}</span>
+                                                        <span>{player.username || 'Unknown'}</span>
+                                                    </td>
+                                                    <td className="p-3 md:p-6 text-center font-mono text-primary-glow font-bold text-lg">{player.score} pts</td>
+                                                    <td className="p-3 md:p-6 text-center text-gray-300 font-medium">{correctFromScore}</td>
+                                                    <td className="p-3 md:p-6 text-right font-mono text-gray-400">{formatTime(player.time_taken)}</td>
+                                                </tr>
+                                            );
+                                        })}
                                     </tbody>
                                 </table>
                             </div>
