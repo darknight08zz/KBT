@@ -26,6 +26,7 @@ function QuizContent() {
 
     // Modals
     const [isExitModalOpen, setIsExitModalOpen] = useState(false);
+    const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
 
     useEffect(() => {
         const storedUser = sessionStorage.getItem('kbt-username');
@@ -117,15 +118,18 @@ function QuizContent() {
         if (isSubmitting) return;
         setIsSubmitting(true);
 
-        // Calculate Score: +10 pts per correct answer, no negative marking
+        // Calculate Score: Easy = 5 pts, Medium = 10 pts, Hard = 15 pts
         let correctCount = 0;
+        let score = 0;
         questions.forEach((q, index) => {
             const userAns = selectedAnswers[index];
             if (!userAns) return;
 
+            let isCorrect = false;
+
             if (q.type === 'multiselect') {
                 if (Array.isArray(userAns) && JSON.stringify([...userAns].sort()) === JSON.stringify(JSON.parse(q.answer || '[]').sort())) {
-                    correctCount += 1;
+                    isCorrect = true;
                 }
             } else if (q.type === 'short_answer' || q.type === 'long_answer') {
                 const ansStr = typeof userAns === 'string' ? userAns.trim() : '';
@@ -135,19 +139,32 @@ function QuizContent() {
                         ? q.keywords
                         : (q.keywords as string).split(',').map(k => k.trim());
                     const matchesAll = keywordsArr.every(k => ansStr.toLowerCase().includes(k.toLowerCase()));
-                    if (matchesAll) correctCount += 1;
+                    if (matchesAll) isCorrect = true;
                 } else if (ansStr.toLowerCase() === q.answer.trim().toLowerCase()) {
-                    correctCount += 1;
+                    isCorrect = true;
                 }
             } else {
                 // MCQ: exact match, no negative marking
                 if (userAns === q.answer) {
-                    correctCount += 1;
+                    isCorrect = true;
+                }
+            }
+
+            if (isCorrect) {
+                correctCount += 1;
+                const difficulty = q.difficulty?.toLowerCase();
+                if (difficulty === 'easy') {
+                    score += 5;
+                } else if (difficulty === 'hard') {
+                    score += 15;
+                } else {
+                    // medium or default
+                    score += 10;
                 }
             }
         });
 
-        const score = correctCount * 10; // 10 pts per correct answer
+        sessionStorage.setItem('kbt-correct', String(correctCount));
         const timeTaken = Math.floor((Date.now() - startTime) / 1000); // seconds elapsed
 
         try {
@@ -213,6 +230,19 @@ function QuizContent() {
                     onCancel={() => setIsExitModalOpen(false)}
                 />
 
+                <Modal
+                    isOpen={isSubmitModalOpen}
+                    title="Submit Quiz Now?"
+                    message={`You have answered ${selectedAnswers.filter(a => a !== null && a !== '').length} of ${questions.length} questions. You only have 1 attempt and cannot retake the quiz. Are you sure you want to finish and submit your score?`}
+                    type="info"
+                    confirmText="Submit"
+                    cancelText="Continue Playing"
+                    onConfirm={() => {
+                        setIsSubmitModalOpen(false);
+                        handleSubmit();
+                    }}
+                    onCancel={() => setIsSubmitModalOpen(false)}
+                />
 
                 {/* Header */}
                 <header className="p-4 border-b border-white/10 flex justify-between items-center bg-black/50 backdrop-blur-md fixed top-0 w-full z-10">
@@ -229,8 +259,15 @@ function QuizContent() {
                             <p className="text-xs text-secondary">Player: <span className="text-white">{username}</span></p>
                         </div>
                     </div>
-                    {/* Header Controls: Live Badge & 20-Minute Quiz Countdown Timer */}
-                    <div className="flex items-center gap-4">
+                    {/* Header Controls: Submit Button, Live Badge & 20-Minute Quiz Countdown Timer */}
+                    <div className="flex items-center gap-3 md:gap-4">
+                        <button
+                            onClick={() => setIsSubmitModalOpen(true)}
+                            disabled={isSubmitting}
+                            className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-green-600/30 hover:bg-green-600/50 text-green-300 border border-green-500/50 hover:border-green-400 transition-all shadow-sm"
+                        >
+                            Submit
+                        </button>
                         <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-green-500/10 text-green-400 border border-green-500/20">
                             <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
                             Live Arena
@@ -261,7 +298,7 @@ function QuizContent() {
                                     </div>
                                     <div className="text-sm font-bold text-primary">
                                         {questions[currentQuestionIndex]?.topic ? `${questions[currentQuestionIndex].topic} • ` : ''}
-                                        {questions[currentQuestionIndex]?.difficulty?.toUpperCase()} Level
+                                        {questions[currentQuestionIndex]?.difficulty?.toUpperCase()} Level ({questions[currentQuestionIndex]?.difficulty?.toLowerCase() === 'easy' ? '+5 pts' : questions[currentQuestionIndex]?.difficulty?.toLowerCase() === 'hard' ? '+15 pts' : '+10 pts'})
                                     </div>
                                 </div>
                                 <div className="text-xs px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-gray-300 font-medium">
@@ -282,33 +319,37 @@ function QuizContent() {
                             </div>
 
                             {/* Navigation */}
-                            <div className="flex justify-end mt-8">
-                                {/* Previous button removed */}
-
-                                {currentQuestionIndex === questions.length - 1 ? (
-                                    <button
-                                        onClick={handleSubmit}
-                                        disabled={isSubmitting || !selectedAnswers[currentQuestionIndex]}
-                                        className={`px-8 py-3 rounded-xl font-bold transition-all transform hover:scale-105 ${
-                                            !selectedAnswers[currentQuestionIndex] || isSubmitting
-                                                ? 'bg-white/10 text-gray-500 cursor-not-allowed'
-                                                : 'bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-900/20'
-                                        }`}
-                                    >
-                                        {isSubmitting ? 'Submitting...' : 'Submit Quiz'}
-                                    </button>
+                            <div className="flex justify-between items-center mt-8 gap-4 flex-wrap">
+                                {currentQuestionIndex < questions.length - 1 ? (
+                                    <>
+                                        <button
+                                            onClick={() => setIsSubmitModalOpen(true)}
+                                            disabled={isSubmitting}
+                                            className="px-8 py-3 rounded-xl font-bold text-sm bg-green-600/20 hover:bg-green-600/40 text-green-300 border border-green-500/40 hover:border-green-400 transition-all"
+                                        >
+                                            Submit
+                                        </button>
+                                        <button
+                                            onClick={handleNext}
+                                            className="px-8 py-3 rounded-xl font-bold transition-all transform hover:scale-105 bg-primary hover:bg-primary-glow text-white shadow-lg shadow-primary/20"
+                                        >
+                                            Next Question →
+                                        </button>
+                                    </>
                                 ) : (
-                                    <button
-                                        onClick={handleNext}
-                                        disabled={!selectedAnswers[currentQuestionIndex]}
-                                        className={`px-8 py-3 rounded-xl font-bold transition-all transform hover:scale-105 ${
-                                            !selectedAnswers[currentQuestionIndex]
-                                                ? 'bg-white/10 text-gray-500 cursor-not-allowed'
-                                                : 'bg-primary hover:bg-primary-glow text-white shadow-lg shadow-primary/20'
-                                        }`}
-                                    >
-                                        Next Question
-                                    </button>
+                                    <div className="w-full flex justify-end">
+                                        <button
+                                            onClick={() => setIsSubmitModalOpen(true)}
+                                            disabled={isSubmitting}
+                                            className={`px-8 py-3 rounded-xl font-bold transition-all transform hover:scale-105 ${
+                                                isSubmitting
+                                                    ? 'bg-white/10 text-gray-500 cursor-not-allowed'
+                                                    : 'bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-900/20'
+                                            }`}
+                                        >
+                                            Submit
+                                        </button>
+                                    </div>
                                 )}
                             </div>
                         </div>
@@ -348,6 +389,14 @@ function QuizContent() {
                                         <div className="w-3 h-3 rounded-full bg-white/10"></div> Unanswered
                                     </div>
                                 </div>
+
+                                <button
+                                    onClick={() => setIsSubmitModalOpen(true)}
+                                    disabled={isSubmitting}
+                                    className="w-full mt-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider bg-green-500/15 hover:bg-green-500/30 text-green-300 border border-green-500/40 transition-all text-center shadow-sm"
+                                >
+                                    Submit
+                                </button>
                             </div>
                         </div>
 

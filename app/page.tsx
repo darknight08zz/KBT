@@ -37,25 +37,27 @@ export default function LandingPage() {
           <div className="bg-black/40 backdrop-blur-sm border border-primary/30 p-6 rounded-xl mb-10 max-w-lg w-full">
             <h2 className="text-2xl font-bold text-primary mb-4">Event Details</h2>
             <div className="space-y-2 text-left inline-block">
-              <p className="text-lg"><span className="font-semibold text-primary-glow">📅 Date:</span> 22nd December 2025, Monday</p>
-              <p className="text-lg"><span className="font-semibold text-primary-glow">⏰ Time:</span> 10:00 AM - 10:00 PM</p>
-              <p className="text-lg"><span className="font-semibold text-primary-glow">🌐 Platform:</span> Online</p>
+              <p className="text-lg"><span className="font-semibold text-primary-glow">📅 Date:</span> 28th September 2026, Monday</p>
+              <p className="text-lg"><span className="font-semibold text-primary-glow">⏰ Time:</span> 04:00 PM - 05:00 PM</p>
+              <p className="text-lg"><span className="font-semibold text-primary-glow">🌐 Platform:</span> Offline</p>
+              <p className="text-lg"><span className="font-semibold text-primary-glow">📍 Venue:</span> CR-301</p>
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center gap-4 w-full justify-center flex-wrap">
-            <a
+            {/* Register Now button disabled and hidden for now */}
+            {/* <a
               href="https://forms.gle/DA4UETxpZjZPEm2WA"
               target="_blank"
               rel="noopener noreferrer"
               className="bg-primary text-black font-bold py-4 px-8 rounded-lg hover:bg-primary/90 transition-colors text-lg shadow-lg shadow-primary/20"
             >
               Register Now →
-            </a>
+            </a> */}
 
             <button
               onClick={() => navigate('/leaderboard')}
-              className="bg-transparent border border-white/20 text-white font-bold py-4 px-8 rounded-lg hover:bg-white/5 transition-colors text-lg"
+              className="bg-primary text-black font-bold py-4 px-8 rounded-lg hover:bg-primary/90 transition-colors text-lg shadow-lg shadow-primary/20"
             >
               Leaderboard
             </button>

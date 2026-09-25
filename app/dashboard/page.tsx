@@ -69,7 +69,14 @@ export default function DashboardPage() {
             {isYearModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in">
                     <div className="bg-gray-900 border border-white/10 p-8 rounded-2xl max-w-md w-full shadow-2xl transform scale-100 transition-all">
-                        <h2 className="text-2xl font-bold mb-6 text-center">Select Your Year</h2>
+                        <h2 className="text-2xl font-bold mb-2 text-center">Select Your Year</h2>
+                        <div className="text-center text-xs text-yellow-400/90 font-medium mb-6 flex items-center justify-center gap-2">
+                            <span>⏱️ 20 Mins Total</span>
+                            <span>•</span>
+                            <span>🎯 1 Attempt Only</span>
+                            <span>•</span>
+                            <span>🏁 Submit Anytime</span>
+                        </div>
                         <div className="grid grid-cols-1 gap-4">
                             {['1st', '2nd', '3rd'].map((year) => (
                                 <button
@@ -132,25 +139,38 @@ export default function DashboardPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* Rules Card */}
                     <div className="glass-panel p-6 rounded-2xl flex flex-col md:col-span-2 bg-gradient-to-r from-blue-900/20 to-purple-900/20">
-                        <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                            <span>📜</span> Arena Rules & Scoring
-                        </h3>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                            <h3 className="text-xl font-bold flex items-center gap-2">
+                                <span>📜</span> Arena Rules & Scoring
+                            </h3>
+                            <div className="flex flex-wrap gap-2 text-xs font-semibold">
+                                <span className="px-3 py-1 bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 rounded-full flex items-center gap-1">
+                                    ⏱️ 20 Mins Total
+                                </span>
+                                <span className="px-3 py-1 bg-red-500/10 border border-red-500/30 text-red-300 rounded-full flex items-center gap-1">
+                                    🎯 1 Attempt Only
+                                </span>
+                                <span className="px-3 py-1 bg-green-500/10 border border-green-500/30 text-green-300 rounded-full flex items-center gap-1">
+                                    🏁 Submit Anytime
+                                </span>
+                            </div>
+                        </div>
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
                             <div className="p-3 bg-green-500/10 rounded-lg border border-green-500/20">
-                                <div className="font-bold text-green-400">Correct Answer</div>
-                                <div className="text-2xl font-mono">+1 pt</div>
-                            </div>
-                            <div className="p-3 bg-red-500/10 rounded-lg border border-red-500/20">
-                                <div className="font-bold text-red-400">Easy Penalty</div>
-                                <div className="text-2xl font-mono">-1 pt</div>
+                                <div className="font-bold text-green-400">Easy Question</div>
+                                <div className="text-2xl font-mono">+5 pts</div>
                             </div>
                             <div className="p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
-                                <div className="font-bold text-yellow-400">Medium Penalty</div>
-                                <div className="text-2xl font-mono">-0.5 pt</div>
+                                <div className="font-bold text-yellow-400">Medium Question</div>
+                                <div className="text-2xl font-mono">+10 pts</div>
                             </div>
-                            <div className="p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
-                                <div className="font-bold text-blue-300">Hard Penalty</div>
-                                <div className="text-2xl font-mono">0 pt</div>
+                            <div className="p-3 bg-red-500/10 rounded-lg border border-red-500/20">
+                                <div className="font-bold text-red-400">Hard Question</div>
+                                <div className="text-2xl font-mono">+15 pts</div>
+                            </div>
+                            <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+                                <div className="font-bold text-gray-300">Incorrect / Skipped</div>
+                                <div className="text-2xl font-mono">0 pts</div>
                             </div>
                         </div>
                     </div>

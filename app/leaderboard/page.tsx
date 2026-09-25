@@ -122,7 +122,6 @@ export default function LeaderboardPage() {
                                     <div className="text-2xl font-bold text-gray-300">2nd</div>
                                     <div className="font-bold text-white truncate">{topThree[1].username}</div>
                                     <div className="text-primary-glow font-mono font-bold">{topThree[1].score} pts</div>
-                                    <div className="text-gray-500 text-xs mt-1">{Math.round(topThree[1].score / 10)} correct</div>
                                 </div>
                             </div>
 
@@ -138,7 +137,6 @@ export default function LeaderboardPage() {
                                     <div className="text-3xl font-bold text-yellow-400">1st</div>
                                     <div className="font-bold text-white text-xl truncate">{topThree[0].username}</div>
                                     <div className="text-yellow-200 font-mono text-lg font-bold">{topThree[0].score} pts</div>
-                                    <div className="text-yellow-500/60 text-xs mt-1">{Math.round(topThree[0].score / 10)} correct</div>
                                 </div>
                             </div>
 
@@ -151,7 +149,6 @@ export default function LeaderboardPage() {
                                     <div className="text-2xl font-bold text-amber-600">3rd</div>
                                     <div className="font-bold text-white truncate">{topThree[2].username}</div>
                                     <div className="text-primary-glow font-mono font-bold">{topThree[2].score} pts</div>
-                                    <div className="text-gray-500 text-xs mt-1">{Math.round(topThree[2].score / 10)} correct</div>
                                 </div>
                             </div>
                         </div>
@@ -170,7 +167,6 @@ export default function LeaderboardPage() {
                                             <th className="p-3 md:p-6 font-bold text-gray-300 tracking-wider uppercase text-sm w-16">Rank</th>
                                             <th className="p-3 md:p-6 font-bold text-gray-300 tracking-wider uppercase text-sm">Player</th>
                                             <th className="p-3 md:p-6 font-bold text-gray-300 tracking-wider uppercase text-sm text-center">Score</th>
-                                            <th className="p-3 md:p-6 font-bold text-gray-300 tracking-wider uppercase text-sm text-center">Correct Ans</th>
                                             <th className="p-3 md:p-6 font-bold text-gray-300 tracking-wider uppercase text-sm text-right">Time Taken</th>
                                         </tr>
                                     </thead>
@@ -178,7 +174,6 @@ export default function LeaderboardPage() {
                                         {leaderboardData.map((player, index) => {
                                             const rank = index + 1;
                                             const rankDisplay = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
-                                            const correctFromScore = Math.round(player.score / 10);
                                             return (
                                                 <tr key={index} className="group hover:bg-white/5 transition-colors">
                                                     <td className="p-3 md:p-6 font-bold text-lg">{rankDisplay}</td>
@@ -187,7 +182,6 @@ export default function LeaderboardPage() {
                                                         <span>{player.username || 'Unknown'}</span>
                                                     </td>
                                                     <td className="p-3 md:p-6 text-center font-mono text-primary-glow font-bold text-lg">{player.score} pts</td>
-                                                    <td className="p-3 md:p-6 text-center text-gray-300 font-medium">{correctFromScore}</td>
                                                     <td className="p-3 md:p-6 text-right font-mono text-gray-400">{formatTime(player.time_taken)}</td>
                                                 </tr>
                                             );

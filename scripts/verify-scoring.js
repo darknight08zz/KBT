@@ -10,12 +10,21 @@ const questions = [
 
 
 const userAnswers = [
-    'Z', // Wrong for Q1 (Easy) -> -1
-    'Z', // Wrong for Q2 (Medium) -> -0.5
-    'Z', // Wrong for Q3 (Hard) -> 0
-    'D', // Correct for Q4 -> +1
-    'hi world'
+    'A', // Correct for Q1 (Easy) -> +5
+    'B', // Correct for Q2 (Medium) -> +10
+    'C', // Correct for Q3 (Hard) -> +15
+    'Z', // Wrong for Q4 (Easy) -> 0
+    'hi hello world' // Correct for Q5 (Medium) -> +10
 ];
+
+function getPointsForDifficulty(difficulty) {
+    switch (difficulty?.toLowerCase()) {
+        case 'easy': return 5;
+        case 'hard': return 15;
+        case 'medium':
+        default: return 10;
+    }
+}
 
 function calculateScore(questions, selectedAnswers) {
     let score = 0;
@@ -25,50 +34,36 @@ function calculateScore(questions, selectedAnswers) {
 
         console.log(`Processing Q${index + 1} (${q.type}, ${q.difficulty}): Ans '${userAns}' vs Correct '${q.answer}'`);
 
+        let isCorrect = false;
+
         if (q.type === 'multiselect') {
             if (Array.isArray(userAns)) {
-                if (JSON.stringify(userAns.sort()) === q.answer) score += 1;
+                if (JSON.stringify(userAns.sort()) === q.answer) {
+                    isCorrect = true;
+                }
             }
         } else if (q.type === 'short_answer' || q.type === 'long_answer') {
             const ansStr = typeof userAns === 'string' ? userAns.trim() : '';
             if (q.keywords && q.keywords.length > 0) {
                 const keywordsArr = Array.isArray(q.keywords) ? q.keywords : q.keywords;
-
-                const matchesAll = keywordsArr.every(k => ansStr.toLowerCase().includes(k.toLowerCase())); // Wait, previous logic was 'every'?
-
-                if (matchesAll) {
-                    console.log(`  -> Keyword match! (+1)`);
-                    score += 1;
-                } else {
-                    console.log(`  -> Keywords NOT matched.`);
-                }
-            }
-            else if (ansStr.toLowerCase() === q.answer.trim().toLowerCase()) {
-                score += 1;
+                const matchesAll = keywordsArr.every(k => ansStr.toLowerCase().includes(k.toLowerCase()));
+                if (matchesAll) isCorrect = true;
+            } else if (ansStr.toLowerCase() === q.answer.trim().toLowerCase()) {
+                isCorrect = true;
             }
         } else {
-            // MCQ
+            // MCQ: exact match
             if (userAns === q.answer) {
-                console.log(`  -> Correct! (+1)`);
-                score += 1;
-            } else {
-                // Negative marking logic
-                console.log(`  -> Wrong! Calculating penalty for ${q.difficulty}...`);
-                switch (q.difficulty?.toLowerCase()) {
-                    case 'easy':
-                        console.log(`    -> Easy penalty: -1`);
-                        score -= 1;
-                        break;
-                    case 'medium':
-                        console.log(`    -> Medium penalty: -0.5`);
-                        score -= 0.5;
-                        break;
-                    case 'hard':
-                        console.log(`    -> Hard penalty: 0`);
-                        break;
-                    default: break;
-                }
+                isCorrect = true;
             }
+        }
+
+        if (isCorrect) {
+            const pts = getPointsForDifficulty(q.difficulty);
+            console.log(`  -> Correct! (+${pts} pts)`);
+            score += pts;
+        } else {
+            console.log(`  -> Incorrect. No penalty (0 pts)`);
         }
     });
     return score;
@@ -77,12 +72,12 @@ function calculateScore(questions, selectedAnswers) {
 const finalScore = calculateScore(questions, userAnswers);
 console.log(`\nFinal Score: ${finalScore}`);
 
-const expectedScore = -0.5;
+const expectedScore = 40; // 5 (Easy) + 10 (Medium) + 15 (Hard) + 0 (Wrong) + 10 (Medium)
 
 console.log(`Expected Score: ${expectedScore}`);
 
 if (Math.abs(finalScore - expectedScore) < 0.001) {
-    console.log("SUCCESS: Scoring logic verified.");
+    console.log("SUCCESS: Difficulty-based scoring verified (Easy=5, Medium=10, Hard=15).");
 } else {
     console.error("FAILURE: Scoring logic mismatch.");
     process.exit(1);

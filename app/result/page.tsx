@@ -30,8 +30,10 @@ function ResultContent() {
                     if (data.hasAttempted) {
                         setScore(data.score ?? score);
                         setTimeTaken(data.time_taken ?? timeTaken);
-                        // Derive correct count from score (10pts each)
-                        setCorrectCount(Math.round((data.score ?? score) / 10));
+                        const savedCorrect = sessionStorage.getItem('kbt-correct');
+                        if (savedCorrect !== null) {
+                            setCorrectCount(parseInt(savedCorrect));
+                        }
                     }
                 })
                 .catch(err => console.error('Failed to fetch user result:', err));
@@ -161,7 +163,6 @@ function ResultContent() {
                                     <th className="pb-4 pl-4 w-16">Rank</th>
                                     <th className="pb-4">Player</th>
                                     <th className="pb-4 text-center">Score (pts)</th>
-                                    <th className="pb-4 text-center">Correct</th>
                                     <th className="pb-4 pr-4 text-right">Time</th>
                                 </tr>
                             </thead>
@@ -170,7 +171,6 @@ function ResultContent() {
                                     const isMe = entry.username === currentUsername;
                                     const rank = idx + 1;
                                     const { emoji, color } = getRankLabel(rank);
-                                    const correctFromScore = Math.round(entry.score / 10);
                                     return (
                                         <tr
                                             key={idx}
@@ -182,7 +182,6 @@ function ResultContent() {
                                                 {isMe && <span className="ml-2 text-xs bg-primary/30 text-primary px-2 py-0.5 rounded-full">You</span>}
                                             </td>
                                             <td className="py-4 text-center font-mono text-primary font-bold text-lg">{entry.score}</td>
-                                            <td className="py-4 text-center text-gray-300 font-medium">{correctFromScore}</td>
                                             <td className="py-4 pr-4 text-right font-mono text-gray-400">{formatTime(entry.time_taken)}</td>
                                         </tr>
                                     );
